@@ -1,11 +1,28 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: '1Password'
+description: 'Read items from a 1Password vault'
+author: 'Brandon Evans'
 inputs:
-  milliseconds: # change this
+  device-id:
+    require: true
+    description: 'A base 32-encoded device ID.'
+  sign-in-address:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+    description: '1Password sign-in address'
+  email-address:
+    required: true
+    description: '1Password username'
+  secret-key:
+    required: true
+    description: '1Password secret key'
+  master-password:
+    required: true
+    description: '1Password master password'
+  vault-name:
+    required: true
+    description: 'The name of the vault containing the desired item.'
+  item-name:
+    required: true
+    description: 'The name of the desired item.'
 runs:
   using: 'node12'
   main: 'dist/index.js'

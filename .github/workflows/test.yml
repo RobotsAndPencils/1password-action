@@ -16,9 +16,18 @@ jobs:
       - run: |
           npm run all
   test: # make sure the action works on a clean machine without building
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runs-on: [macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v2
       - uses: ./
         with:
-          milliseconds: 1000
+          device-id: ${{ secrets.OP_DEVICE_ID }}
+          sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
+          email-address: ${{ secrets.OP_EMAIL_ADDRESS }}
+          secret-key: ${{ secrets.OP_SECRET_KEY }}
+          master-password: ${{ secrets.OP_MASTER_PASSWORD }}
+          vault-name: 'GitHub Action Test Vault'
+          item-name: 'Test Login'
