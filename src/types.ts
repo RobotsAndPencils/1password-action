@@ -12,6 +12,11 @@ export type Overview = {
 export type Details = {
   fields?: Field[]
   password?: string
+  documentAttributes?: DocumentAttributes
+}
+
+export type DocumentAttributes = {
+  fileName: string
 }
 
 export type Field = {
