@@ -181,11 +181,12 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(186));
 const tc = __importStar(__webpack_require__(784));
+const exec = __importStar(__webpack_require__(514));
 const exec_1 = __webpack_require__(757);
 const install_1 = __webpack_require__(39);
 const ONE_PASSWORD_VERSION = '1.7.0';
 function run() {
-    var _a, _b;
+    var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const deviceId = core.getInput('device-id');
@@ -254,8 +255,16 @@ function run() {
                 }
                 // Document
                 case '006': {
-                    const documentOutput = yield exec_1.execWithOutput('op', ['get', 'document', uuid, '--vault', vaultName], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
-                    core.info(documentOutput);
+                    const filename = (_c = item.details.documentAttributes) === null || _c === void 0 ? void 0 : _c.fileName;
+                    if (filename === undefined) {
+                        throw new Error('Expected string for property document.details.documentAttributes?.filename, got undefined.');
+                    }
+                    yield exec.exec('op', ['get', 'document', uuid, '--output', filename], {
+                        env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session }
+                    });
+                    const normalizedItemName = normalizeOutputName(item.overview.title);
+                    const documentOutputName = `${normalizedItemName}_filename`;
+                    core.setOutput(documentOutputName, filename);
                     break;
                 }
             }
@@ -268,6 +277,7 @@ function run() {
 function normalizeOutputName(dataKey) {
     return dataKey
         .replace(' ', '_')
+        .replace('.', '_')
         .replace(/[^\p{L}\p{N}_-]/gu, '')
         .toLowerCase();
 }

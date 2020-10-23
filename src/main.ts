@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import * as tc from '@actions/tool-cache'
+import * as exec from '@actions/exec'
 import {execWithOutput} from './exec'
 import {Item} from './types'
 import {install} from './install'
@@ -96,16 +97,26 @@ async function run(): Promise<void> {
         const passwordOutputName = `${normalizedItemName}_password`
         core.setSecret(password)
         core.setOutput(passwordOutputName, password)
+
         break
       }
       // Document
       case '006': {
-        const documentOutput = await execWithOutput(
-          'op',
-          ['get', 'document', uuid, '--vault', vaultName],
-          {env: {OP_DEVICE: deviceId, OP_SESSION_github_action: session}}
-        )
-        core.info(documentOutput)
+        const filename = item.details.documentAttributes?.fileName
+        if (filename === undefined) {
+          throw new Error(
+            'Expected string for property document.details.documentAttributes?.filename, got undefined.'
+          )
+        }
+
+        await exec.exec('op', ['get', 'document', uuid, '--output', filename], {
+          env: {OP_DEVICE: deviceId, OP_SESSION_github_action: session}
+        })
+
+        const normalizedItemName = normalizeOutputName(item.overview.title)
+        const documentOutputName = `${normalizedItemName}_filename`
+        core.setOutput(documentOutputName, filename)
+
         break
       }
     }
@@ -117,6 +128,7 @@ async function run(): Promise<void> {
 function normalizeOutputName(dataKey: string): string {
   return dataKey
     .replace(' ', '_')
+    .replace('.', '_')
     .replace(/[^\p{L}\p{N}_-]/gu, '')
     .toLowerCase()
 }

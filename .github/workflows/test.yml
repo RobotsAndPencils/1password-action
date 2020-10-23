@@ -42,8 +42,20 @@ jobs:
           master-password: ${{ secrets.OP_MASTER_PASSWORD }}
           vault-name: 'GitHub Action Test Vault'
           item-name: 'Test Password'
+      - uses: ./
+        id: document
+        with:
+          device-id: ${{ secrets.OP_DEVICE_ID }}
+          sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
+          email-address: ${{ secrets.OP_EMAIL_ADDRESS }}
+          secret-key: ${{ secrets.OP_SECRET_KEY }}
+          master-password: ${{ secrets.OP_MASTER_PASSWORD }}
+          vault-name: 'GitHub Action Test Vault'
+          item-name: 'Test Document'
       - name: Verify
         run: |
           [[ "${{ steps.login.outputs.test_login_username }}" == "username001" ]] || exit 1
           [[ "${{ steps.login.outputs.test_login_password }}" == "password123" ]] || exit 1
           [[ "${{ steps.password.outputs.test_password_password }}" == "password456" ]] || exit 1
+          [[ "${{ steps.document.outputs.test_document_filename }}" == "Test Document.txt" ]] || exit 1
+          [[ -f "Test Document.txt" ]] || exit 1
