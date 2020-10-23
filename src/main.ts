@@ -8,6 +8,14 @@ const ONE_PASSWORD_VERSION = '1.7.0'
 
 async function run(): Promise<void> {
   try {
+    const deviceId = core.getInput('device-id')
+    const signInAddress = core.getInput('sign-in-address')
+    const emailAddress = core.getInput('email-address')
+    const masterPassword = core.getInput('master-password')
+    const secretKey = core.getInput('secret-key')
+    const vaultName = core.getInput('vault-name')
+    const itemName = core.getInput('item-name')
+
     // Check if op is installed and download if necessary
     const cachedOpDirectory = tc.find('op', ONE_PASSWORD_VERSION)
     // This seems like a weird API, why not return undefined?
@@ -16,14 +24,6 @@ async function run(): Promise<void> {
     } else {
       await install(ONE_PASSWORD_VERSION)
     }
-
-    const deviceId = core.getInput('device-id')
-    const signInAddress = core.getInput('sign-in-address')
-    const emailAddress = core.getInput('email-address')
-    const masterPassword = core.getInput('master-password')
-    const secretKey = core.getInput('secret-key')
-    const vaultName = core.getInput('vault-name')
-    const itemName = core.getInput('item-name')
 
     const output = await execWithOutput(
       'op',
@@ -70,10 +70,17 @@ async function run(): Promise<void> {
         const username = item.details.fields.filter(
           field => field.designation === 'username'
         )[0].value
-        // const password = item.details.fields.filter(
-        //   field => field.designation === "password"
-        // )[0].value
-        core.info(`Username: ${username}`)
+        const password = item.details.fields.filter(
+          field => field.designation === 'password'
+        )[0].value
+
+        const normalizedItemName = normalizeOutputName(item.overview.title)
+        const usernameOutputName = `${normalizedItemName}_username`
+        core.setOutput(usernameOutputName, username)
+        const passwordOutputName = `${normalizedItemName}_password`
+        core.setSecret(password)
+        core.setOutput(passwordOutputName, password)
+
         break
       }
       // Document
@@ -90,6 +97,13 @@ async function run(): Promise<void> {
   } catch (error) {
     core.setFailed(error.message)
   }
+}
+
+function normalizeOutputName(dataKey: string): string {
+  return dataKey
+    .replace(' ', '_')
+    .replace(/[^\p{L}\p{N}_-]/gu, '')
+    .toLowerCase()
 }
 
 run()
