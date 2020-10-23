@@ -67,10 +67,10 @@ async function run(): Promise<void> {
     switch (item.templateUuid) {
       // Item
       case '001': {
-        const username = item.details.fields.filter(
+        const username = (item.details.fields ?? []).filter(
           field => field.designation === 'username'
         )[0].value
-        const password = item.details.fields.filter(
+        const password = (item.details.fields ?? []).filter(
           field => field.designation === 'password'
         )[0].value
 
@@ -81,6 +81,21 @@ async function run(): Promise<void> {
         core.setSecret(password)
         core.setOutput(passwordOutputName, password)
 
+        break
+      }
+      // Password
+      case '005': {
+        const password = item.details.password
+        if (password === undefined) {
+          throw new Error(
+            'Expected string for property item.details.password, got undefined.'
+          )
+        }
+
+        const normalizedItemName = normalizeOutputName(item.overview.title)
+        const passwordOutputName = `${normalizedItemName}_password`
+        core.setSecret(password)
+        core.setOutput(passwordOutputName, password)
         break
       }
       // Document

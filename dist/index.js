@@ -185,6 +185,7 @@ const exec_1 = __webpack_require__(757);
 const install_1 = __webpack_require__(39);
 const ONE_PASSWORD_VERSION = '1.7.0';
 function run() {
+    var _a, _b;
     return __awaiter(this, void 0, void 0, function* () {
         try {
             const deviceId = core.getInput('device-id');
@@ -229,11 +230,23 @@ function run() {
             switch (item.templateUuid) {
                 // Item
                 case '001': {
-                    const username = item.details.fields.filter(field => field.designation === 'username')[0].value;
-                    const password = item.details.fields.filter(field => field.designation === 'password')[0].value;
+                    const username = ((_a = item.details.fields) !== null && _a !== void 0 ? _a : []).filter(field => field.designation === 'username')[0].value;
+                    const password = ((_b = item.details.fields) !== null && _b !== void 0 ? _b : []).filter(field => field.designation === 'password')[0].value;
                     const normalizedItemName = normalizeOutputName(item.overview.title);
                     const usernameOutputName = `${normalizedItemName}_username`;
                     core.setOutput(usernameOutputName, username);
+                    const passwordOutputName = `${normalizedItemName}_password`;
+                    core.setSecret(password);
+                    core.setOutput(passwordOutputName, password);
+                    break;
+                }
+                // Password
+                case '005': {
+                    const password = item.details.password;
+                    if (password === undefined) {
+                        throw new Error('Expected string for property item.details.password, got undefined.');
+                    }
+                    const normalizedItemName = normalizeOutputName(item.overview.title);
                     const passwordOutputName = `${normalizedItemName}_password`;
                     core.setSecret(password);
                     core.setOutput(passwordOutputName, password);
