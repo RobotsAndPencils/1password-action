@@ -10,7 +10,8 @@ export type Overview = {
 }
 
 export type Details = {
-  fields: Field[]
+  fields?: Field[]
+  password?: string
 }
 
 export type Field = {
