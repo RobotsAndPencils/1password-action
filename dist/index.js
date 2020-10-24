@@ -184,6 +184,7 @@ const tc = __importStar(__webpack_require__(784));
 const exec = __importStar(__webpack_require__(514));
 const exec_1 = __webpack_require__(757);
 const install_1 = __webpack_require__(39);
+const parsing = __importStar(__webpack_require__(791));
 const ONE_PASSWORD_VERSION = '1.7.0';
 function run() {
     var _a, _b, _c;
@@ -194,8 +195,7 @@ function run() {
             const emailAddress = core.getInput('email-address');
             const masterPassword = core.getInput('master-password');
             const secretKey = core.getInput('secret-key');
-            const vaultName = core.getInput('vault-name');
-            const itemName = core.getInput('item-name');
+            const itemRequestsString = core.getInput('items');
             // Check if op is installed and download if necessary
             const cachedOpDirectory = tc.find('op', ONE_PASSWORD_VERSION);
             // This seems like a weird API, why not return undefined?
@@ -221,51 +221,51 @@ function run() {
             });
             const session = output.toString().trim();
             core.setSecret(session);
-            const itemsJSON = yield exec_1.execWithOutput('op', ['list', 'items', '--vault', vaultName], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
-            const items = JSON.parse(itemsJSON);
-            const uuid = items
-                .filter(item => item.overview.title === itemName)
-                .map(item => item.uuid)[0];
-            const itemJSON = yield exec_1.execWithOutput('op', ['get', 'item', uuid, '--vault', vaultName], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
-            const item = JSON.parse(itemJSON);
-            switch (item.templateUuid) {
-                // Item
-                case '001': {
-                    const username = ((_a = item.details.fields) !== null && _a !== void 0 ? _a : []).filter(field => field.designation === 'username')[0].value;
-                    const password = ((_b = item.details.fields) !== null && _b !== void 0 ? _b : []).filter(field => field.designation === 'password')[0].value;
-                    const normalizedItemName = normalizeOutputName(item.overview.title);
-                    const usernameOutputName = `${normalizedItemName}_username`;
-                    core.setOutput(usernameOutputName, username);
-                    const passwordOutputName = `${normalizedItemName}_password`;
-                    core.setSecret(password);
-                    core.setOutput(passwordOutputName, password);
-                    break;
-                }
-                // Password
-                case '005': {
-                    const password = item.details.password;
-                    if (password === undefined) {
-                        throw new Error('Expected string for property item.details.password, got undefined.');
+            const itemRequests = parsing.parseItemRequestsInput(itemRequestsString);
+            for (const itemRequest of itemRequests) {
+                const itemsJSON = yield exec_1.execWithOutput('op', ['list', 'items', '--vault', itemRequest.vault], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
+                const items = JSON.parse(itemsJSON);
+                const uuid = items
+                    .filter(item => item.overview.title === itemRequest.name)
+                    .map(item => item.uuid)[0];
+                const itemJSON = yield exec_1.execWithOutput('op', ['get', 'item', uuid, '--vault', itemRequest.vault], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
+                const item = JSON.parse(itemJSON);
+                switch (item.templateUuid) {
+                    // Item
+                    case '001': {
+                        const username = ((_a = item.details.fields) !== null && _a !== void 0 ? _a : []).filter(field => field.designation === 'username')[0].value;
+                        const password = ((_b = item.details.fields) !== null && _b !== void 0 ? _b : []).filter(field => field.designation === 'password')[0].value;
+                        const usernameOutputName = `${itemRequest.outputName}_username`;
+                        core.setOutput(usernameOutputName, username);
+                        const passwordOutputName = `${itemRequest.outputName}_password`;
+                        core.setSecret(password);
+                        core.setOutput(passwordOutputName, password);
+                        break;
                     }
-                    const normalizedItemName = normalizeOutputName(item.overview.title);
-                    const passwordOutputName = `${normalizedItemName}_password`;
-                    core.setSecret(password);
-                    core.setOutput(passwordOutputName, password);
-                    break;
-                }
-                // Document
-                case '006': {
-                    const filename = (_c = item.details.documentAttributes) === null || _c === void 0 ? void 0 : _c.fileName;
-                    if (filename === undefined) {
-                        throw new Error('Expected string for property document.details.documentAttributes?.filename, got undefined.');
+                    // Password
+                    case '005': {
+                        const password = item.details.password;
+                        if (password === undefined) {
+                            throw new Error('Expected string for property item.details.password, got undefined.');
+                        }
+                        const passwordOutputName = `${itemRequest.outputName}_password`;
+                        core.setSecret(password);
+                        core.setOutput(passwordOutputName, password);
+                        break;
                     }
-                    yield exec.exec('op', ['get', 'document', uuid, '--output', filename], {
-                        env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session }
-                    });
-                    const normalizedItemName = normalizeOutputName(item.overview.title);
-                    const documentOutputName = `${normalizedItemName}_filename`;
-                    core.setOutput(documentOutputName, filename);
-                    break;
+                    // Document
+                    case '006': {
+                        const filename = (_c = item.details.documentAttributes) === null || _c === void 0 ? void 0 : _c.fileName;
+                        if (filename === undefined) {
+                            throw new Error('Expected string for property document.details.documentAttributes?.filename, got undefined.');
+                        }
+                        yield exec.exec('op', ['get', 'document', uuid, '--output', filename], {
+                            env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session }
+                        });
+                        const documentOutputName = `${itemRequest.outputName}_filename`;
+                        core.setOutput(documentOutputName, filename);
+                        break;
+                    }
                 }
             }
         }
@@ -274,6 +274,65 @@ function run() {
         }
     });
 }
+run();
+
+
+/***/ }),
+
+/***/ 791:
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.parseItemRequestsInput = void 0;
+/**
+ * Parses an item requests input string into vault names, item names and their resulting normalized output names.
+ * Based on parsing from https://github.com/hashicorp/vault-action/
+ */
+function parseItemRequestsInput(itemInput) {
+    const itemRequestLines = itemInput
+        .split('\n')
+        .filter(key => !!key)
+        .map(key => key.trim())
+        .filter(key => key.length !== 0);
+    const output = [];
+    for (const itemRequestLine of itemRequestLines) {
+        let pathSpec = itemRequestLine;
+        let outputName = null;
+        const renameSigilIndex = itemRequestLine.lastIndexOf('|');
+        if (renameSigilIndex > -1) {
+            pathSpec = itemRequestLine.substring(0, renameSigilIndex).trim();
+            outputName = itemRequestLine.substring(renameSigilIndex + 1).trim();
+            if (outputName.length < 1) {
+                throw Error(`You must provide a value when mapping an item to a name. Input: "${itemRequestLine}"`);
+            }
+        }
+        const pathParts = pathSpec
+            .split(' > ')
+            .map(part => part.trim())
+            .filter(part => part.length !== 0);
+        if (pathParts.length !== 2) {
+            throw Error(`You must provide a valid vault and item name. Input: "${itemRequestLine}"`);
+        }
+        const [vaultQuoted, nameQuoted] = pathParts;
+        const vault = vaultQuoted.replace(new RegExp('"', 'g'), '');
+        const name = nameQuoted.replace(new RegExp('"', 'g'), '');
+        if (!outputName) {
+            outputName = normalizeOutputName(name);
+        }
+        else {
+            outputName = normalizeOutputName(outputName);
+        }
+        output.push({
+            vault,
+            name,
+            outputName
+        });
+    }
+    return output;
+}
+exports.parseItemRequestsInput = parseItemRequestsInput;
 function normalizeOutputName(dataKey) {
     return dataKey
         .replace(' ', '_')
@@ -281,7 +340,6 @@ function normalizeOutputName(dataKey) {
         .replace(/[^\p{L}\p{N}_-]/gu, '')
         .toLowerCase();
 }
-run();
 
 
 /***/ }),
