@@ -200,7 +200,7 @@ const exec = __importStar(__webpack_require__(514));
 const exec_1 = __webpack_require__(757);
 const install_1 = __webpack_require__(39);
 const parsing = __importStar(__webpack_require__(791));
-const ONE_PASSWORD_VERSION = '1.7.0';
+const ONE_PASSWORD_VERSION = '1.8.0';
 function run() {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
@@ -220,6 +220,13 @@ function run() {
             else {
                 yield install_1.install(ONE_PASSWORD_VERSION);
             }
+            const env = {
+                OP_DEVICE: deviceId
+            };
+            if (process.env['XDG_CONFIG_HOME'] === undefined) {
+                // This env var isn't set on GitHub-hosted runners
+                env.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`;
+            }
             const output = yield exec_1.execWithOutput('op', [
                 'signin',
                 signInAddress,
@@ -229,21 +236,20 @@ function run() {
                 '--shorthand',
                 'github_action'
             ], {
-                env: {
-                    OP_DEVICE: deviceId
-                },
+                env,
                 input: Buffer.alloc(masterPassword.length, masterPassword)
             });
             const session = output.toString().trim();
             core.setSecret(session);
+            env.OP_SESSION_github_action = session;
             const itemRequests = parsing.parseItemRequestsInput(itemRequestsString);
             for (const itemRequest of itemRequests) {
-                const itemsJSON = yield exec_1.execWithOutput('op', ['list', 'items', '--vault', itemRequest.vault], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
+                const itemsJSON = yield exec_1.execWithOutput('op', ['list', 'items', '--vault', itemRequest.vault], { env });
                 const items = JSON.parse(itemsJSON);
                 const uuid = items
                     .filter(item => item.overview.title === itemRequest.name)
                     .map(item => item.uuid)[0];
-                const itemJSON = yield exec_1.execWithOutput('op', ['get', 'item', uuid, '--vault', itemRequest.vault], { env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session } });
+                const itemJSON = yield exec_1.execWithOutput('op', ['get', 'item', uuid, '--vault', itemRequest.vault], { env });
                 const item = JSON.parse(itemJSON);
                 switch (item.templateUuid) {
                     // Item
@@ -274,9 +280,7 @@ function run() {
                         if (filename === undefined) {
                             throw new Error('Expected string for property document.details.documentAttributes?.filename, got undefined.');
                         }
-                        yield exec.exec('op', ['get', 'document', uuid, '--output', filename], {
-                            env: { OP_DEVICE: deviceId, OP_SESSION_github_action: session }
-                        });
+                        yield exec.exec('op', ['get', 'document', uuid, '--output', filename], { env });
                         const documentOutputName = `${itemRequest.outputName}_filename`;
                         core.setOutput(documentOutputName, filename);
                         break;

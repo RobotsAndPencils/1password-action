@@ -6,7 +6,7 @@ import {Item} from './types'
 import {install} from './install'
 import * as parsing from './parsing'
 
-const ONE_PASSWORD_VERSION = '1.7.0'
+const ONE_PASSWORD_VERSION = '1.8.0'
 
 async function run(): Promise<void> {
   try {
@@ -26,6 +26,15 @@ async function run(): Promise<void> {
       await install(ONE_PASSWORD_VERSION)
     }
 
+    const env: {[key: string]: string} = {
+      OP_DEVICE: deviceId
+    }
+
+    if (process.env['XDG_CONFIG_HOME'] === undefined) {
+      // This env var isn't set on GitHub-hosted runners
+      env.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`
+    }
+
     const output = await execWithOutput(
       'op',
       [
@@ -38,14 +47,14 @@ async function run(): Promise<void> {
         'github_action'
       ],
       {
-        env: {
-          OP_DEVICE: deviceId
-        },
+        env,
         input: Buffer.alloc(masterPassword.length, masterPassword)
       }
     )
     const session = output.toString().trim()
     core.setSecret(session)
+
+    env.OP_SESSION_github_action = session
 
     const itemRequests = parsing.parseItemRequestsInput(itemRequestsString)
 
@@ -53,7 +62,7 @@ async function run(): Promise<void> {
       const itemsJSON = await execWithOutput(
         'op',
         ['list', 'items', '--vault', itemRequest.vault],
-        {env: {OP_DEVICE: deviceId, OP_SESSION_github_action: session}}
+        {env}
       )
 
       const items: Item[] = JSON.parse(itemsJSON)
@@ -64,7 +73,7 @@ async function run(): Promise<void> {
       const itemJSON = await execWithOutput(
         'op',
         ['get', 'item', uuid, '--vault', itemRequest.vault],
-        {env: {OP_DEVICE: deviceId, OP_SESSION_github_action: session}}
+        {env}
       )
       const item: Item = JSON.parse(itemJSON)
 
@@ -113,9 +122,7 @@ async function run(): Promise<void> {
           await exec.exec(
             'op',
             ['get', 'document', uuid, '--output', filename],
-            {
-              env: {OP_DEVICE: deviceId, OP_SESSION_github_action: session}
-            }
+            {env}
           )
 
           const documentOutputName = `${itemRequest.outputName}_filename`
