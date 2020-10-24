@@ -7,6 +7,7 @@ import * as exec from '@actions/exec'
 import {execWithOutput} from './exec'
 
 const CERT_IDENTIFIER = 'Developer ID Installer: AgileBits Inc. (2BUA8C4S2C)'
+const KEY_FINGERPRINT = '3FEF9748469ADBE15DA7CA80AC2D62742012EA22'
 
 export async function install(onePasswordVersion: string): Promise<void> {
   const platform = os.platform().toLowerCase()
@@ -26,7 +27,7 @@ export async function install(onePasswordVersion: string): Promise<void> {
     ])
     if (signatureCheck.includes(CERT_IDENTIFIER) === false) {
       throw new Error(
-        `Unable to verify the code signature of the installer package downloaded from ${onePasswordUrl}.\nExpecting it to include ${CERT_IDENTIFIER}.\nReceived:\n${signatureCheck}`
+        `Signature verification of the installer package downloaded from ${onePasswordUrl} failed.\nExpecting it to include ${CERT_IDENTIFIER}.\nReceived:\n${signatureCheck}`
       )
     } else {
       core.info('Verified the code signature of the installer package.')
@@ -41,6 +42,23 @@ export async function install(onePasswordVersion: string): Promise<void> {
     extracted = '.'
   } else {
     extracted = await tc.extractZip(archive)
+
+    await exec.exec('gpg', [
+      '--keyserver',
+      'keyserver.ubuntu.com',
+      '--receive-keys',
+      KEY_FINGERPRINT
+    ])
+    const verifyStatus = await exec.exec('gpg', [
+      '--verify',
+      `${extracted}/op.sig`,
+      `${extracted}/op`
+    ])
+    if (verifyStatus !== 0) {
+      throw new Error(
+        `Signature verification of the executable downloaded from ${onePasswordUrl} failed.`
+      )
+    }
   }
   const destination = `${process.env.HOME}/bin`
   await mv(`${extracted}/op`, `${destination}/op`)
