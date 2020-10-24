@@ -103,6 +103,7 @@ const tc = __importStar(__webpack_require__(784));
 const exec = __importStar(__webpack_require__(514));
 const exec_1 = __webpack_require__(757);
 const CERT_IDENTIFIER = 'Developer ID Installer: AgileBits Inc. (2BUA8C4S2C)';
+const KEY_FINGERPRINT = '3FEF9748469ADBE15DA7CA80AC2D62742012EA22';
 function install(onePasswordVersion) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = os_1.default.platform().toLowerCase();
@@ -119,7 +120,7 @@ function install(onePasswordVersion) {
                 archive
             ]);
             if (signatureCheck.includes(CERT_IDENTIFIER) === false) {
-                throw new Error(`Unable to verify the code signature of the installer package downloaded from ${onePasswordUrl}.\nExpecting it to include ${CERT_IDENTIFIER}.\nReceived:\n${signatureCheck}`);
+                throw new Error(`Signature verification of the installer package downloaded from ${onePasswordUrl} failed.\nExpecting it to include ${CERT_IDENTIFIER}.\nReceived:\n${signatureCheck}`);
             }
             else {
                 core.info('Verified the code signature of the installer package.');
@@ -132,6 +133,20 @@ function install(onePasswordVersion) {
         }
         else {
             extracted = yield tc.extractZip(archive);
+            yield exec.exec('gpg', [
+                '--keyserver',
+                'keyserver.ubuntu.com',
+                '--receive-keys',
+                KEY_FINGERPRINT
+            ]);
+            const verifyStatus = yield exec.exec('gpg', [
+                '--verify',
+                `${extracted}/op.sig`,
+                `${extracted}/op`
+            ]);
+            if (verifyStatus !== 0) {
+                throw new Error(`Signature verification of the executable downloaded from ${onePasswordUrl} failed.`);
+            }
         }
         const destination = `${process.env.HOME}/bin`;
         yield io_1.mv(`${extracted}/op`, `${destination}/op`);
@@ -308,10 +323,21 @@ function parseItemRequestsInput(itemInput) {
                 throw Error(`You must provide a value when mapping an item to a name. Input: "${itemRequestLine}"`);
             }
         }
-        const pathParts = pathSpec
-            .split(' > ')
-            .map(part => part.trim())
-            .filter(part => part.length !== 0);
+        let pathParts = [];
+        if (pathSpec.startsWith('"')) {
+            const secondQuoteIndex = pathSpec.indexOf('"', 1);
+            const vault = pathSpec.substr(0, secondQuoteIndex + 1);
+            pathParts.push(vault);
+            // + 3 to remove the ' > ' prefix
+            const remainder = pathSpec.slice(secondQuoteIndex + 1 + 3);
+            pathParts.push(remainder);
+        }
+        else {
+            pathParts = pathSpec
+                .split(' > ')
+                .map(part => part.trim())
+                .filter(part => part.length !== 0);
+        }
         if (pathParts.length !== 2) {
             throw Error(`You must provide a valid vault and item name. Input: "${itemRequestLine}"`);
         }
