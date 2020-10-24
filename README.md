@@ -1,4 +1,5 @@
 ![build-test](https://github.com/interstateone/1password-action/workflows/build-test/badge.svg)
+![OS Support: Ubuntu and macOS](https://img.shields.io/badge/OS-Ubuntu%20%7C%20macOS-lightgrey)
 
 # 1Password GitHub Action
 
