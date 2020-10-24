@@ -2,10 +2,10 @@ import {parseItemRequestsInput} from '../src/parsing'
 
 test('parses single quoted item', async () => {
   const output = parseItemRequestsInput(
-    '"GitHub <Action> Test Vault" > "Test Login"'
+    '"GitHub < Action > Test Vault" > "Test Login"'
   )
   expect(output).toHaveLength(1)
-  expect(output[0].vault).toBe('GitHub <Action> Test Vault')
+  expect(output[0].vault).toBe('GitHub < Action > Test Vault')
   expect(output[0].name).toBe('Test Login')
   expect(output[0].outputName).toBe('test_login')
 })

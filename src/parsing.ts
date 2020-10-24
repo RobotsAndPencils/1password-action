@@ -32,10 +32,21 @@ export function parseItemRequestsInput(itemInput: string): ItemRequest[] {
       }
     }
 
-    const pathParts = pathSpec
-      .split(' > ')
-      .map(part => part.trim())
-      .filter(part => part.length !== 0)
+    let pathParts: string[] = []
+    if (pathSpec.startsWith('"')) {
+      const secondQuoteIndex = pathSpec.indexOf('"', 1)
+      const vault = pathSpec.substr(0, secondQuoteIndex + 1)
+      pathParts.push(vault)
+
+      // + 3 to remove the ' > ' prefix
+      const remainder = pathSpec.slice(secondQuoteIndex + 1 + 3)
+      pathParts.push(remainder)
+    } else {
+      pathParts = pathSpec
+        .split(' > ')
+        .map(part => part.trim())
+        .filter(part => part.length !== 0)
+    }
 
     if (pathParts.length !== 2) {
       throw Error(
