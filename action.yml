@@ -17,12 +17,9 @@ inputs:
   master-password:
     required: true
     description: '1Password master password'
-  vault-name:
+  items:
     required: true
-    description: 'The name of the vault containing the desired item.'
-  item-name:
-    required: true
-    description: 'The name of the desired item.'
+    description: 'The vault and item names, and optionally new names, being requested.'
 runs:
   using: 'node12'
   main: 'dist/index.js'
