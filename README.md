@@ -51,7 +51,7 @@ The imported items can then be used elsewhere in your workflow.
 
 Login items will output both the username and password, and password items will output the password. The output variable's name will be the item's name with spaces and `.` replaced with `_`, non-alphanumeric characters removed, and lowercased. For example, an item named `Google Firebase 2020` would be available as the `google_firebase_2020` output variable.
 
-Documents will be saved as files with the same filename as in 1Password. Their filename will be set as an output variable following the same rules as login and password items. For example, a document with the filename `Apple Distribution.p12` will be saved as a file with the same name, and the filename will be available as the output variable `apple_distribution_p12`.
+Documents will be saved as files with the same filename as in 1Password. Their filename will be set as an output variable following the same rules as login and password items. For example, a document with the filename `Apple Distribution.p12` will be saved as a file with the same name, and the filename will be available as the output variable `apple_distribution_p12_filename`.
 
 In all cases, you can provide your own output name which will be used in place of the item name from 1Password, and normalized.
 
