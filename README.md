@@ -7,7 +7,7 @@ Import logins, passwords and documents from your 1Password vaults to use in your
 
 ```yaml
 name: Import Secrets
-uses: interstateone/1password-action@v1
+uses: RobotsAndPencils/1password-action@v1
 id: secrets
 with:
   device-id: ${{ secrets.OP_DEVICE_ID }}
