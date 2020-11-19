@@ -1,5 +1,5 @@
 name: '1Password Secrets'
-description: 'Read items from a 1Password vault for use in your GitHub Action workflows'
+description: 'Read items from 1Password for use in your GitHub Action workflows'
 author: 'Robots & Pencils'
 inputs:
   device-id:
