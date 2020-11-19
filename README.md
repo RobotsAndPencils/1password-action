@@ -6,19 +6,19 @@
 Import logins, passwords and documents from your 1Password vaults to use in your GitHub Action workflows.
 
 ```yaml
-name: Import Secrets
-uses: RobotsAndPencils/1password-action@v1
-id: secrets
-with:
-  device-id: ${{ secrets.OP_DEVICE_ID }}
-  sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
-  email-address: ${{ secrets.OP_EMAIL_ADDRESS }}
-  secret-key: ${{ secrets.OP_SECRET_KEY }}
-  master-password: ${{ secrets.OP_MASTER_PASSWORD }}
-  items: |
-    Client A > App Store Connect
-    Client A > Certificate | p12
-    Client A > Provisioning Profile
+- name: Import Secrets
+  uses: RobotsAndPencils/1password-action@v1
+  id: secrets
+  with:
+    device-id: ${{ secrets.OP_DEVICE_ID }}
+    sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
+    email-address: ${{ secrets.OP_EMAIL_ADDRESS }}
+    secret-key: ${{ secrets.OP_SECRET_KEY }}
+    master-password: ${{ secrets.OP_MASTER_PASSWORD }}
+    items: |
+      Client A > App Store Connect
+      Client A > Certificate | p12
+      Client A > Provisioning Profile
 ```
 
 The imported items can then be used elsewhere in your workflow.
@@ -37,6 +37,8 @@ The imported items can then be used elsewhere in your workflow.
 
 **Device ID:** Generate a device ID with `head -c 16 /dev/urandom | base32 | tr -d = | tr '[:upper:]' '[:lower:]'`. This should be stable across multiple workflow runs. If you're using GitHub-hosted runners you can set this as a secret, and if you're using self-hosted runners you could set it as an env var on the runner.
 
+Note: If you receive the `command not found: base32` error, you'll have to install `brew install coreutils`
+
 **Sign-In Address:** The full URL, with subdomain, where you sign in to 1Password.
 
 **Email Address:** The email address of the user you'll sign in with.
@@ -49,11 +51,19 @@ The imported items can then be used elsewhere in your workflow.
 
 ## Outputs
 
-Login items will output both the username and password, and password items will output the password. The output variable's name will be the item's name with spaces and `.` replaced with `_`, non-alphanumeric characters removed, and lowercased. For example, an item named `Google Firebase 2020` would be available as the `google_firebase_2020` output variable.
+`Login` items will output both the username and password fields
 
-Documents will be saved as files with the same filename as in 1Password. Their filename will be set as an output variable following the same rules as login and password items. For example, a document with the filename `Apple Distribution.p12` will be saved as a file with the same name, and the filename will be available as the output variable `apple_distribution_p12_filename`.
+`Password` items will output the password field. 
+
+The output variable's name will be the item's name with spaces and `.` replaced with `_`, non-alphanumeric characters removed, and lowercased. For example, a `Password` item named `Google Firebase 2020` would be available as the `google_firebase_2020_password` output variable.
+
+Another example a `Login` item named `App Store Login` would be available as the `app_store_login_username` and `app_store_login_password` output variables. 
+
+`Document` items will be saved as files with the same filename as in 1Password. Their filename will be set as an output variable following the same rules as login and password items. For example, a document with the filename `Apple Distribution.p12` will be saved as a file with the same name, and the filename will be available as the output variable `apple_distribution_p12_filename`.
 
 In all cases, you can provide your own output name which will be used in place of the item name from 1Password, and normalized.
+
+All password outputs are marked with an action mask. 
 
 ---
 
