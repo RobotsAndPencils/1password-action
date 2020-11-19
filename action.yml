@@ -1,6 +1,6 @@
-name: '1Password'
-description: 'Read items from a 1Password vault'
-author: 'Brandon Evans'
+name: '1Password Action'
+description: 'Read items from a 1Password vault for use in your github workflow secrets'
+author: 'Robots & Pencils'
 inputs:
   device-id:
     require: true
@@ -23,3 +23,6 @@ inputs:
 runs:
   using: 'node12'
   main: 'dist/index.js'
+branding:
+  icon: "lock"
+  color: "yellow"
