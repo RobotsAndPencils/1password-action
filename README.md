@@ -35,7 +35,15 @@ The imported items can then be used elsewhere in your workflow.
 
 ## Inputs
 
-**Device ID:** Generate a device ID with `head -c 16 /dev/urandom | base32 | tr -d = | tr '[:upper:]' '[:lower:]'`. This should be stable across multiple workflow runs. If you're using GitHub-hosted runners you can set this as a secret, and if you're using self-hosted runners you could set it as an env var on the runner.
+**Device ID:** Generate a device ID with `head -c 16 /dev/urandom | base32 | tr -d = | tr '[:upper:]' '[:lower:]'`. This should be stable across multiple workflow runs. If you're using GitHub-hosted runners you can set this as a secret, and if you're using self-hosted runners you could set it as an `OP_DEVICE` environment variable in the runner's shell. In the latter case you'll need to add a step before this action that plucks out the device ID and sets it in the workflow's environment, like:
+
+```yaml
+- name: Get 1Password device ID from macOS runner shell
+  shell: /bin/bash -l {0}
+  run: |
+    echo "OP_DEVICE=$OP_DEVICE" >> $GITHUB_ENV
+    echo "::add-mask::$OP_DEVICE"
+```
 
 **Sign-In Address:** The full URL, with subdomain, where you sign in to 1Password.
 
