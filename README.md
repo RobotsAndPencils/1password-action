@@ -112,3 +112,11 @@ $ git push origin releases/v1
 ```
 
 See the [versioning documentation](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
+
+## Contact
+
+<a href="http://www.robotsandpencils.com"><img src="R&PLogo.png" width="153" height="74" /></a>
+
+Made with ❤️ by [Robots & Pencils](http://www.robotsandpencils.com)
+
+[Twitter](https://twitter.com/robotsNpencils) | [GitHub](https://github.com/robotsandpencils)
