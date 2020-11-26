@@ -132,6 +132,15 @@ async function run(): Promise<void> {
         }
       }
     }
+
+    core.info('Signing out of op')
+    // Sign out of op
+    const signout = await execWithOutput(
+      'op',
+      ['signout', '--forget'],
+      {env}
+    )      
+
   } catch (error) {
     core.setFailed(error.message)
   }
