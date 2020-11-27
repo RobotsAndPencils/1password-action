@@ -150,7 +150,7 @@ function install(onePasswordVersion) {
         }
         let destination = `${process.env.HOME}/bin`;
         // Using ACT, lets set to a directory we have access to.
-        if (`${process.env.ACT}`) {
+        if (process.env.ACT) {
             destination = `/tmp`;
         }
         yield io_1.mv(`${extracted}/op`, `${destination}/op`);
