@@ -51,6 +51,7 @@ jobs:
             1Password Action Tests > Test Password | p12
             1Password Action Tests > Test Document
       - name: Verify Local
+        if: ${{ env.ACT }}
         run: |
           [[ "${{ steps.secretsLocal.outputs.test_login_username }}" == "username001" ]] || exit 1
           [[ "${{ steps.secretsLocal.outputs.test_login_password }}" == "password123" ]] || exit 1
@@ -58,6 +59,7 @@ jobs:
           [[ "${{ steps.secretsLocal.outputs.test_document_filename }}" == "Test Document.txt" ]] || exit 1
           [[ -f "Test Document.txt" ]] || exit 1
       - name: Verify Github
+        if: ${{ !env.ACT }}
         run: |
           [[ "${{ steps.secrets.outputs.test_login_username }}" == "username001" ]] || exit 1
           [[ "${{ steps.secrets.outputs.test_login_password }}" == "password123" ]] || exit 1
