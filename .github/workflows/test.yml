@@ -31,9 +31,9 @@ jobs:
           secret-key: ${{ secrets.OP_SECRET_KEY }}
           master-password: ${{ secrets.OP_MASTER_PASSWORD }}
           items: |
-            GitHub Action Test Vault > Test Login
-            GitHub Action Test Vault > Test Password | p12
-            GitHub Action Test Vault > Test Document
+            1Password Action Tests > Test Login
+            1Password Action Tests > Test Password | p12
+            1Password Action Tests > Test Document
       - name: Verify
         run: |
           [[ "${{ steps.secrets.outputs.test_login_username }}" == "username001" ]] || exit 1
