@@ -17,7 +17,7 @@ async function run(): Promise<void> {
     const secretKey = core.getInput('secret-key')
     const itemRequestsString = core.getInput('items')
 
-    // Set inputs to secrets so they can't be leaked back to github console accidently
+    // Set inputs to secrets so they can't be leaked back to github console accidentally
     core.setSecret(deviceId)
     core.setSecret(signInAddress)
     core.setSecret(emailAddress)
