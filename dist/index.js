@@ -297,6 +297,9 @@ function run() {
                     }
                 }
             }
+            core.info('Signing out of op');
+            // Sign out of op
+            yield exec.exec('op', ['signout', '--forget'], { env });
         }
         catch (error) {
             core.setFailed(error.message);
