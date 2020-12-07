@@ -22,22 +22,9 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     steps:
       - uses: actions/checkout@v2
-      - name: Test Action - local 
-        if: ${{ env.ACT }}
-        uses: ./actiontest
-        id: secretsLocal
         with:
-          device-id: ${{ secrets.OP_DEVICE_ID }}
-          sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
-          email-address: ${{ secrets.OP_EMAIL_ADDRESS }}
-          secret-key: ${{ secrets.OP_SECRET_KEY }}
-          master-password: ${{ secrets.OP_MASTER_PASSWORD }}
-          items: |
-            1Password Action Tests > Test Login
-            1Password Action Tests > Test Password | p12
-            1Password Action Tests > Test Document
-      - name: Test Action - Github
-        if: ${{ !env.ACT }}
+          path: "1password-action"
+      - name: Test Action
         uses: ./
         id: secrets
         with:
@@ -50,15 +37,7 @@ jobs:
             1Password Action Tests > Test Login
             1Password Action Tests > Test Password | p12
             1Password Action Tests > Test Document
-      - name: Verify Local
-        if: ${{ env.ACT }}
-        run: |
-          [[ "${{ steps.secretsLocal.outputs.test_login_username }}" == "username001" ]] || exit 1
-          [[ "${{ steps.secretsLocal.outputs.test_login_password }}" == "password123" ]] || exit 1
-          [[ "${{ steps.secretsLocal.outputs.p12_password }}" == "password456" ]] || exit 1
-          [[ "${{ steps.secretsLocal.outputs.test_document_filename }}" == "Test Document.txt" ]] || exit 1
-          [[ -f "Test Document.txt" ]] || exit 1
-      - name: Verify Github
+      - name: Verify
         if: ${{ !env.ACT }}
         run: |
           [[ "${{ steps.secrets.outputs.test_login_username }}" == "username001" ]] || exit 1

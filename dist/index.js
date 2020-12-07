@@ -42,7 +42,7 @@ function execWithOutput(command, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let out = '';
         const opt = options !== null && options !== void 0 ? options : {};
-        opt.silent = false;
+        opt.silent = true;
         opt.listeners = {
             stdout: (data) => {
                 out += data.toString();
@@ -237,8 +237,6 @@ function run() {
                 // This env var isn't set on GitHub-hosted runners
                 env.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`;
             }
-            core.info('XDG_CONFIG_HOME');
-            core.debug(env.XDG_CONFIG_HOME);
             const output = yield exec_1.execWithOutput('op', [
                 'signin',
                 signInAddress,
@@ -299,9 +297,6 @@ function run() {
                     }
                 }
             }
-            core.info('Signing out of op');
-            // Sign out of op
-            yield exec.exec('op', ['signout', '--forget'], { env });
         }
         catch (error) {
             core.setFailed(error.message);
