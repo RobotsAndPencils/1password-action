@@ -60,7 +60,14 @@ export async function install(onePasswordVersion: string): Promise<void> {
       )
     }
   }
-  const destination = `${process.env.HOME}/bin`
+
+  let destination = `${process.env.HOME}/bin`
+
+  // Using ACT, lets set to a directory we have access to.
+  if (process.env.ACT) {
+    destination = `/tmp`
+  }
+
   await mv(`${extracted}/op`, `${destination}/op`)
   await chmod(`${destination}/op`, '0755')
 

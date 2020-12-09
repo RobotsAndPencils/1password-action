@@ -5,6 +5,7 @@
   "description": "TypeScript template action",
   "main": "lib/main.js",
   "scripts": {
+    "act": "act -P ubuntu-latest=nektos/act-environments-ubuntu:18.04 -j test --secret-file .secrets --env-file .environment",
     "build": "tsc",
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",

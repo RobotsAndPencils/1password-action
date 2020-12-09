@@ -21,8 +21,16 @@ jobs:
         runs-on: [macos-latest, ubuntu-latest]
     runs-on: ${{ matrix.runs-on }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: ./
+      - name: Checkout Locally
+        uses: actions/checkout@v2
+        if: ${{ env.ACT }}
+        with:
+          path: "1password-action"
+      - name: Checkout Github
+        uses: actions/checkout@v2
+        if: ${{ !env.ACT }}
+      - name: Test Action
+        uses: ./
         id: secrets
         with:
           device-id: ${{ secrets.OP_DEVICE_ID }}

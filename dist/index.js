@@ -148,7 +148,11 @@ function install(onePasswordVersion) {
                 throw new Error(`Signature verification of the executable downloaded from ${onePasswordUrl} failed.`);
             }
         }
-        const destination = `${process.env.HOME}/bin`;
+        let destination = `${process.env.HOME}/bin`;
+        // Using ACT, lets set to a directory we have access to.
+        if (process.env.ACT) {
+            destination = `/tmp`;
+        }
         yield io_1.mv(`${extracted}/op`, `${destination}/op`);
         yield io_util_1.chmod(`${destination}/op`, '0755');
         const cachedPath = yield tc.cacheDir(destination, 'op', onePasswordVersion);
@@ -211,6 +215,12 @@ function run() {
             const masterPassword = core.getInput('master-password');
             const secretKey = core.getInput('secret-key');
             const itemRequestsString = core.getInput('items');
+            // Set inputs to secrets so they can't be leaked back to github console accidentally
+            core.setSecret(deviceId);
+            core.setSecret(signInAddress);
+            core.setSecret(emailAddress);
+            core.setSecret(masterPassword);
+            core.setSecret(secretKey);
             // Check if op is installed and download if necessary
             const cachedOpDirectory = tc.find('op', ONE_PASSWORD_VERSION);
             // This seems like a weird API, why not return undefined?
