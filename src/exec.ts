@@ -6,13 +6,27 @@ export async function execWithOutput(
   options?: exec.ExecOptions
 ): Promise<string> {
   let out = ''
+  let err = ''
+
   const opt = options ?? {}
-  opt.silent = true
+  opt.silent = true // for debugging set this to false to see the output of 1password
   opt.listeners = {
     stdout: (data: Buffer) => {
       out += data.toString()
+    },
+    stderr: (data: Buffer) => {
+      err += data.toString().trim()
     }
   }
-  await exec.exec(command, args, opt)
+  try {
+    await exec.exec(command, args, opt)
+  } catch {
+    if (err) {
+      throw new Error(err)
+    } else {
+      return out
+    }
+  }
+
   return out
 }

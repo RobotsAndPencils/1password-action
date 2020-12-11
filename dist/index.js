@@ -2,6 +2,131 @@ require('./sourcemap-register.js');module.exports =
 /******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 649:
+/***/ (function(__unused_webpack_module, exports, __webpack_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.OnePassword = void 0;
+const core = __importStar(__webpack_require__(186));
+const install_1 = __webpack_require__(39);
+const tc = __importStar(__webpack_require__(784));
+const exec_1 = __webpack_require__(757);
+const ONE_PASSWORD_VERSION = '1.8.0';
+class OnePassword {
+    constructor(deviceId) {
+        this.onePasswordEnv = {
+            OP_DEVICE: deviceId
+        };
+        if (process.env['XDG_CONFIG_HOME'] === undefined) {
+            // This env var isn't set on GitHub-hosted runners
+            this.onePasswordEnv.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`;
+        }
+    }
+    setupAndInstallIfNeeded() {
+        return __awaiter(this, void 0, void 0, function* () {
+            // Check if op is installed and download if necessary
+            const cachedOpDirectory = tc.find('op', ONE_PASSWORD_VERSION);
+            // This seems like a weird API, why not return undefined?
+            if (cachedOpDirectory !== '') {
+                core.addPath(cachedOpDirectory);
+            }
+            else {
+                yield install_1.install(ONE_PASSWORD_VERSION);
+            }
+        });
+    }
+    signIn(signInAddress, emailAddress, secretKey, masterPassword) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const env = this.onePasswordEnv;
+            try {
+                const output = yield exec_1.execWithOutput('op', [
+                    'signin',
+                    signInAddress,
+                    emailAddress,
+                    secretKey,
+                    '--raw',
+                    '--shorthand',
+                    'github_action'
+                ], {
+                    env,
+                    input: Buffer.alloc(masterPassword.length, masterPassword)
+                });
+                core.info('Successfully signed in to 1Password');
+                const session = output.toString().trim();
+                core.setSecret(session);
+                this.onePasswordEnv.OP_SESSION_github_action = session;
+            }
+            catch (error) {
+                throw new Error(error);
+            }
+        });
+    }
+    listItemsInVault(vault) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const env = this.onePasswordEnv;
+            return yield exec_1.execWithOutput('op', ['list', 'items', '--vault', vault], {
+                env
+            });
+        });
+    }
+    getItemInVault(vault, uuid) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const env = this.onePasswordEnv;
+            return yield exec_1.execWithOutput('op', ['get', 'item', uuid, '--vault', vault], {
+                env
+            });
+        });
+    }
+    getDocument(uuid, filename) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const env = this.onePasswordEnv;
+            yield exec_1.execWithOutput('op', ['get', 'document', uuid, '--output', filename], {
+                env
+            });
+        });
+    }
+    signOut() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const env = this.onePasswordEnv;
+            yield exec_1.execWithOutput('op', ['signout', '--forget'], { env });
+        });
+    }
+}
+exports.OnePassword = OnePassword;
+
+
+/***/ }),
+
 /***/ 757:
 /***/ (function(__unused_webpack_module, exports, __webpack_require__) {
 
@@ -41,14 +166,28 @@ const exec = __importStar(__webpack_require__(514));
 function execWithOutput(command, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let out = '';
+        let err = '';
         const opt = options !== null && options !== void 0 ? options : {};
-        opt.silent = true;
+        opt.silent = true; // for debugging set this to false to see the output of 1password
         opt.listeners = {
             stdout: (data) => {
                 out += data.toString();
+            },
+            stderr: (data) => {
+                err += data.toString().trim();
             }
         };
-        yield exec.exec(command, args, opt);
+        try {
+            yield exec.exec(command, args, opt);
+        }
+        catch (_a) {
+            if (err) {
+                throw new Error(err);
+            }
+            else {
+                return out;
+            }
+        }
         return out;
     });
 }
@@ -197,69 +336,78 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__webpack_require__(186));
-const tc = __importStar(__webpack_require__(784));
-const exec = __importStar(__webpack_require__(514));
-const exec_1 = __webpack_require__(757);
-const install_1 = __webpack_require__(39);
+const _1password_1 = __webpack_require__(649);
 const parsing = __importStar(__webpack_require__(791));
-const ONE_PASSWORD_VERSION = '1.8.0';
+const ansi_styles_1 = __importDefault(__webpack_require__(68));
 function run() {
+    return __awaiter(this, void 0, void 0, function* () {
+        // try {
+        const deviceId = core.getInput('device-id');
+        const onePassword = new _1password_1.OnePassword(deviceId);
+        try {
+            yield onePassword.setupAndInstallIfNeeded();
+        }
+        catch (error) {
+            core.setFailed(error.message);
+        }
+        const signInAddress = core.getInput('sign-in-address');
+        const emailAddress = core.getInput('email-address');
+        const masterPassword = core.getInput('master-password');
+        const secretKey = core.getInput('secret-key');
+        // Set inputs to secrets so they can't be leaked back to github console accidentally
+        core.setSecret(signInAddress);
+        core.setSecret(emailAddress);
+        core.setSecret(masterPassword);
+        core.setSecret(secretKey);
+        core.startGroup('Signing in to 1Password');
+        try {
+            yield onePassword.signIn(signInAddress, emailAddress, secretKey, masterPassword);
+        }
+        catch (error) {
+            core.setFailed(`Error signing in to 1Password: ${error.message}`);
+            return;
+        }
+        core.endGroup();
+        core.startGroup('Getting Items');
+        const itemRequestsString = core.getInput('items');
+        const itemRequests = parsing.parseItemRequestsInput(itemRequestsString);
+        try {
+            yield requestItems(onePassword, itemRequests);
+        }
+        catch (error) {
+            core.setFailed(error.message);
+        }
+        core.endGroup();
+        core.info('Signing out of 1Password');
+        try {
+            yield onePassword.signOut();
+        }
+        catch (error) {
+            core.setFailed(error.message);
+        }
+    });
+}
+function requestItems(onePassword, itemRequests) {
     var _a, _b, _c;
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            const deviceId = core.getInput('device-id');
-            const signInAddress = core.getInput('sign-in-address');
-            const emailAddress = core.getInput('email-address');
-            const masterPassword = core.getInput('master-password');
-            const secretKey = core.getInput('secret-key');
-            const itemRequestsString = core.getInput('items');
-            // Set inputs to secrets so they can't be leaked back to github console accidentally
-            core.setSecret(deviceId);
-            core.setSecret(signInAddress);
-            core.setSecret(emailAddress);
-            core.setSecret(masterPassword);
-            core.setSecret(secretKey);
-            // Check if op is installed and download if necessary
-            const cachedOpDirectory = tc.find('op', ONE_PASSWORD_VERSION);
-            // This seems like a weird API, why not return undefined?
-            if (cachedOpDirectory !== '') {
-                core.addPath(cachedOpDirectory);
-            }
-            else {
-                yield install_1.install(ONE_PASSWORD_VERSION);
-            }
-            const env = {
-                OP_DEVICE: deviceId
-            };
-            if (process.env['XDG_CONFIG_HOME'] === undefined) {
-                // This env var isn't set on GitHub-hosted runners
-                env.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`;
-            }
-            const output = yield exec_1.execWithOutput('op', [
-                'signin',
-                signInAddress,
-                emailAddress,
-                secretKey,
-                '--raw',
-                '--shorthand',
-                'github_action'
-            ], {
-                env,
-                input: Buffer.alloc(masterPassword.length, masterPassword)
-            });
-            const session = output.toString().trim();
-            core.setSecret(session);
-            env.OP_SESSION_github_action = session;
-            const itemRequests = parsing.parseItemRequestsInput(itemRequestsString);
-            for (const itemRequest of itemRequests) {
-                const itemsJSON = yield exec_1.execWithOutput('op', ['list', 'items', '--vault', itemRequest.vault], { env });
+        for (const itemRequest of itemRequests) {
+            try {
+                core.info(`Getting items in 1Password Vault:${ansi_styles_1.default.bold.open} ${itemRequest.vault}`);
+                const itemsJSON = yield onePassword.listItemsInVault(itemRequest.vault);
                 const items = JSON.parse(itemsJSON);
                 const uuid = items
                     .filter(item => item.overview.title === itemRequest.name)
                     .map(item => item.uuid)[0];
-                const itemJSON = yield exec_1.execWithOutput('op', ['get', 'item', uuid, '--vault', itemRequest.vault], { env });
+                if (!uuid) {
+                    throw new Error(`Could not find item in vault${ansi_styles_1.default.inverse.open} ${itemRequest.vault}${ansi_styles_1.default.inverse.close} with name${ansi_styles_1.default.inverse.open} ${itemRequest.name}`);
+                }
+                core.info(`Loading  ${ansi_styles_1.default.bold.open} ${itemRequest.name}`);
+                const itemJSON = yield onePassword.getItemInVault(itemRequest.vault, uuid);
                 const item = JSON.parse(itemJSON);
                 switch (item.templateUuid) {
                     // Item
@@ -277,7 +425,7 @@ function run() {
                     case '005': {
                         const password = item.details.password;
                         if (password === undefined) {
-                            throw new Error('Expected string for property item.details.password, got undefined.');
+                            throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for property item.details.password, got undefined.`);
                         }
                         const passwordOutputName = `${itemRequest.outputName}_password`;
                         core.setSecret(password);
@@ -288,21 +436,23 @@ function run() {
                     case '006': {
                         const filename = (_c = item.details.documentAttributes) === null || _c === void 0 ? void 0 : _c.fileName;
                         if (filename === undefined) {
-                            throw new Error('Expected string for property document.details.documentAttributes?.filename, got undefined.');
+                            throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for property document.details.documentAttributes?.filename, got undefined.`);
                         }
-                        yield exec.exec('op', ['get', 'document', uuid, '--output', filename], { env });
+                        try {
+                            yield onePassword.getDocument(uuid, filename);
+                        }
+                        catch (error) {
+                            throw new Error(`${ansi_styles_1.default.inverse.open}Error downloading file ${filename} - ${error}`);
+                        }
                         const documentOutputName = `${itemRequest.outputName}_filename`;
                         core.setOutput(documentOutputName, filename);
                         break;
                     }
                 }
             }
-            core.info('Signing out of op');
-            // Sign out of op
-            yield exec.exec('op', ['signout', '--forget'], { env });
-        }
-        catch (error) {
-            core.setFailed(error.message);
+            catch (error) {
+                throw new Error(error);
+            }
         }
     });
 }
@@ -3348,6 +3498,169 @@ function _unique(values) {
 
 /***/ }),
 
+/***/ 68:
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+/* module decorator */ module = __webpack_require__.nmd(module);
+
+
+const ANSI_BACKGROUND_OFFSET = 10;
+
+const wrapAnsi256 = (offset = 0) => code => `\u001B[${38 + offset};5;${code}m`;
+
+const wrapAnsi16m = (offset = 0) => (red, green, blue) => `\u001B[${38 + offset};2;${red};${green};${blue}m`;
+
+function assembleStyles() {
+	const codes = new Map();
+	const styles = {
+		modifier: {
+			reset: [0, 0],
+			// 21 isn't widely supported and 22 does the same thing
+			bold: [1, 22],
+			dim: [2, 22],
+			italic: [3, 23],
+			underline: [4, 24],
+			inverse: [7, 27],
+			hidden: [8, 28],
+			strikethrough: [9, 29]
+		},
+		color: {
+			black: [30, 39],
+			red: [31, 39],
+			green: [32, 39],
+			yellow: [33, 39],
+			blue: [34, 39],
+			magenta: [35, 39],
+			cyan: [36, 39],
+			white: [37, 39],
+
+			// Bright color
+			blackBright: [90, 39],
+			redBright: [91, 39],
+			greenBright: [92, 39],
+			yellowBright: [93, 39],
+			blueBright: [94, 39],
+			magentaBright: [95, 39],
+			cyanBright: [96, 39],
+			whiteBright: [97, 39]
+		},
+		bgColor: {
+			bgBlack: [40, 49],
+			bgRed: [41, 49],
+			bgGreen: [42, 49],
+			bgYellow: [43, 49],
+			bgBlue: [44, 49],
+			bgMagenta: [45, 49],
+			bgCyan: [46, 49],
+			bgWhite: [47, 49],
+
+			// Bright color
+			bgBlackBright: [100, 49],
+			bgRedBright: [101, 49],
+			bgGreenBright: [102, 49],
+			bgYellowBright: [103, 49],
+			bgBlueBright: [104, 49],
+			bgMagentaBright: [105, 49],
+			bgCyanBright: [106, 49],
+			bgWhiteBright: [107, 49]
+		}
+	};
+
+	// Alias bright black as gray (and grey)
+	styles.color.gray = styles.color.blackBright;
+	styles.bgColor.bgGray = styles.bgColor.bgBlackBright;
+	styles.color.grey = styles.color.blackBright;
+	styles.bgColor.bgGrey = styles.bgColor.bgBlackBright;
+
+	for (const [groupName, group] of Object.entries(styles)) {
+		for (const [styleName, style] of Object.entries(group)) {
+			styles[styleName] = {
+				open: `\u001B[${style[0]}m`,
+				close: `\u001B[${style[1]}m`
+			};
+
+			group[styleName] = styles[styleName];
+
+			codes.set(style[0], style[1]);
+		}
+
+		Object.defineProperty(styles, groupName, {
+			value: group,
+			enumerable: false
+		});
+	}
+
+	Object.defineProperty(styles, 'codes', {
+		value: codes,
+		enumerable: false
+	});
+
+	styles.color.close = '\u001B[39m';
+	styles.bgColor.close = '\u001B[49m';
+
+	styles.color.ansi256 = wrapAnsi256();
+	styles.color.ansi16m = wrapAnsi16m();
+	styles.bgColor.ansi256 = wrapAnsi256(ANSI_BACKGROUND_OFFSET);
+	styles.bgColor.ansi16m = wrapAnsi16m(ANSI_BACKGROUND_OFFSET);
+
+	// From https://github.com/Qix-/color-convert/blob/3f0e0d4e92e235796ccb17f6e85c72094a651f49/conversions.js
+	styles.rgbToAnsi256 = (red, green, blue) => {
+		// We use the extended greyscale palette here, with the exception of
+		// black and white. normal palette only has 4 greyscale shades.
+		if (red === green && green === blue) {
+			if (red < 8) {
+				return 16;
+			}
+
+			if (red > 248) {
+				return 231;
+			}
+
+			return Math.round(((red - 8) / 247) * 24) + 232;
+		}
+
+		return 16 +
+			(36 * Math.round(red / 255 * 5)) +
+			(6 * Math.round(green / 255 * 5)) +
+			Math.round(blue / 255 * 5);
+	};
+
+	styles.hexToRgb = hex => {
+		const matches = /(?<colorString>[a-f\d]{6}|[a-f\d]{3})/i.exec(hex.toString(16));
+		if (!matches) {
+			return [0, 0, 0];
+		}
+
+		let {colorString} = matches.groups;
+
+		if (colorString.length === 3) {
+			colorString = colorString.split('').map(character => character + character).join('');
+		}
+
+		const integer = Number.parseInt(colorString, 16);
+
+		return [
+			(integer >> 16) & 0xFF,
+			(integer >> 8) & 0xFF,
+			integer & 0xFF
+		];
+	};
+
+	styles.hexToAnsi256 = hex => styles.rgbToAnsi256(...styles.hexToRgb(hex));
+
+	return styles;
+}
+
+// Make the export immutable
+Object.defineProperty(module, 'exports', {
+	enumerable: true,
+	get: assembleStyles
+});
+
+
+/***/ }),
+
 /***/ 911:
 /***/ ((module, exports) => {
 
@@ -5430,8 +5743,8 @@ module.exports = require("util");;
 /******/ 		}
 /******/ 		// Create a new module (and put it into the cache)
 /******/ 		var module = __webpack_module_cache__[moduleId] = {
-/******/ 			// no module.id needed
-/******/ 			// no module.loaded needed
+/******/ 			id: moduleId,
+/******/ 			loaded: false,
 /******/ 			exports: {}
 /******/ 		};
 /******/ 	
@@ -5444,11 +5757,23 @@ module.exports = require("util");;
 /******/ 			if(threw) delete __webpack_module_cache__[moduleId];
 /******/ 		}
 /******/ 	
+/******/ 		// Flag the module as loaded
+/******/ 		module.loaded = true;
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/node module decorator */
+/******/ 	(() => {
+/******/ 		__webpack_require__.nmd = (module) => {
+/******/ 			module.paths = [];
+/******/ 			if (!module.children) module.children = [];
+/******/ 			return module;
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/compat */
 /******/ 	
 /******/ 	__webpack_require__.ab = __dirname + "/";/************************************************************************/
