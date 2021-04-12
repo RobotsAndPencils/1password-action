@@ -24,6 +24,7 @@ jobs:
     steps:
       - run: echo "export XDG_CONFIG_HOME=/github/home/.config" | sudo tee -a $BASH_ENV
       - run: echo $XDG_CONFIG_HOME
+      - run: echo $HOME
       - name: Checkout Locally
         uses: actions/checkout@v2
         if: ${{ env.ACT }}
@@ -35,6 +36,8 @@ jobs:
       - name: Test Action
         uses: ./
         id: secrets
+        env: 
+          XDG_CONFIG_HOME: ${{ $HOME/.config }}
         with:
           device-id: ${{ secrets.OP_DEVICE_ID }}
           sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
