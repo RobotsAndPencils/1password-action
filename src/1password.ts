@@ -23,11 +23,11 @@ export class OnePassword {
     // Check if op is installed and download if necessary
     const cachedOpDirectory = tc.find('op', ONE_PASSWORD_VERSION)
     // This seems like a weird API, why not return undefined?
-    if (cachedOpDirectory !== '') {
-      core.addPath(cachedOpDirectory)
-    } else {
+    // if (cachedOpDirectory !== '') {
+    //   core.addPath(cachedOpDirectory)
+    // } else {
       await install(ONE_PASSWORD_VERSION)
-    }
+    // }
   }
 
   async signIn(
