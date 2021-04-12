@@ -37,7 +37,7 @@ jobs:
         uses: ./
         id: secrets
         env: 
-          XDG_CONFIG_HOME: ${{ $HOME/.config }}
+          XDG_CONFIG_HOME: ${{ env.HOME/.config }}
         with:
           device-id: ${{ secrets.OP_DEVICE_ID }}
           sign-in-address: ${{ secrets.OP_SIGN_IN_ADDRESS }}
