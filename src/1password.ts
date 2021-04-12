@@ -13,10 +13,10 @@ export class OnePassword {
       OP_DEVICE: deviceId
     }
 
-    if (process.env['XDG_CONFIG_HOME'] === undefined) {
-      // This env var isn't set on GitHub-hosted runners
-      this.onePasswordEnv.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`
-    }
+    // if (process.env['XDG_CONFIG_HOME'] === undefined) {
+    //   // This env var isn't set on GitHub-hosted runners
+    //   this.onePasswordEnv.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`
+    // }
   }
 
   async setupAndInstallIfNeeded(): Promise<void> {
