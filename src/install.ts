@@ -1,6 +1,6 @@
 import os from 'os'
 import * as core from '@actions/core'
-import {mv} from '@actions/io'
+import {cp} from '@actions/io'
 import {chmod} from '@actions/io/lib/io-util'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
@@ -68,7 +68,7 @@ export async function install(onePasswordVersion: string): Promise<void> {
     destination = `/tmp`
   }
 
-  await mv(`${extracted}/op`, `${destination}/op`)
+  await cp(`${extracted}/op`, `${destination}/op`)
   await chmod(`${destination}/op`, '0755')
 
   const cachedPath = await tc.cacheDir(destination, 'op', onePasswordVersion)
