@@ -164,19 +164,6 @@ async function requestItems(
               )
             }
           }
-          const username = (item.details.fields ?? []).filter(
-            field => field.designation === 'username'
-          )[0].value
-          const password = (item.details.fields ?? []).filter(
-            field => field.designation === 'password'
-          )[0].value
-
-          const usernameOutputName = `${itemRequest.outputName}_username`
-          core.setOutput(usernameOutputName, username)
-          const passwordOutputName = `${itemRequest.outputName}_password`
-          core.setSecret(password)
-          core.setOutput(passwordOutputName, password)
-
           break
         }
       }
