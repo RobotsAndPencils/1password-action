@@ -91,7 +91,7 @@ async function requestItems(
       const item: Item = JSON.parse(itemJSON)
 
       switch (item.templateUuid) {
-        // Item
+        // Login
         case '001': {
           const username = (item.details.fields ?? []).filter(
             field => field.designation === 'username'
@@ -142,6 +142,40 @@ async function requestItems(
 
           const documentOutputName = `${itemRequest.outputName}_filename`
           core.setOutput(documentOutputName, filename)
+
+          break
+        }
+        /** Passport */
+        case '106': {
+          const allSections = item.details.sections
+          if (!allSections) {
+            break
+          }
+          for (const section of allSections) {
+            for (const field of section.fields) {
+              const {k: conceal, t: name, v: value} = field
+              if (conceal === 'concealed') {
+                core.setSecret(value)
+              }
+
+              core.setOutput(
+                `${itemRequest.outputName}_${section.title}_${name}`,
+                value
+              )
+            }
+          }
+          const username = (item.details.fields ?? []).filter(
+            field => field.designation === 'username'
+          )[0].value
+          const password = (item.details.fields ?? []).filter(
+            field => field.designation === 'password'
+          )[0].value
+
+          const usernameOutputName = `${itemRequest.outputName}_username`
+          core.setOutput(usernameOutputName, username)
+          const passwordOutputName = `${itemRequest.outputName}_password`
+          core.setSecret(password)
+          core.setOutput(passwordOutputName, password)
 
           break
         }
