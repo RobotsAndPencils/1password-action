@@ -3,6 +3,7 @@ import {OnePassword} from './1password'
 import * as parsing from './parsing'
 import {Item} from './types'
 import style from 'ansi-styles'
+import {sectionParse} from './utils/items'
 
 async function run(): Promise<void> {
   // try {
@@ -106,6 +107,10 @@ async function requestItems(
           core.setSecret(password)
           core.setOutput(passwordOutputName, password)
 
+          /** Parse Remaining Sections */
+          if (item.details.sections) {
+            sectionParse(item.details.sections, itemRequest)
+          }
           break
         }
         // Password
@@ -147,22 +152,9 @@ async function requestItems(
         }
         // Passport
         case '106': {
-          const allSections = item.details.sections
-          if (!allSections) {
-            break
-          }
-          for (const section of allSections) {
-            for (const field of section.fields) {
-              const {k: conceal, t: name, v: value} = field
-              if (conceal === 'concealed') {
-                core.setSecret(value)
-              }
-
-              core.setOutput(
-                `${itemRequest.outputName}_${section.title}_${name}`,
-                value
-              )
-            }
+          /** Parse All Sections */
+          if (item.details.sections) {
+            sectionParse(item.details.sections, itemRequest)
           }
           break
         }
