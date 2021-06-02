@@ -145,7 +145,7 @@ async function requestItems(
 
           break
         }
-        /** Passport */
+        // Passport
         case '106': {
           const allSections = item.details.sections
           if (!allSections) {
