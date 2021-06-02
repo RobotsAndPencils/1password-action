@@ -26,7 +26,7 @@ export type Field = {
   value: string
 }
 
-interface Section {
+export interface Section {
   fields: {
     /** Conceal? */
     k: 'concealed' | string
