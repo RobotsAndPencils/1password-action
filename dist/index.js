@@ -84,7 +84,7 @@ class OnePassword {
                     env,
                     input: Buffer.alloc(masterPassword.length, masterPassword)
                 });
-                core.info('Successfully signed in to 1Password');
+                core.info(`Successfully signed in to 1Password`);
                 const session = output.toString().trim();
                 core.setSecret(session);
                 this.onePasswordEnv.OP_SESSION_github_action = session;
