@@ -28,7 +28,7 @@
   "dependencies": {
     "@actions/core": "^1.2.6",
     "@actions/tool-cache": "^2.0",
-    "ansi-styles": "^5.0.0"
+    "ansi-styles": "^6.0.0"
   },
   "devDependencies": {
     "@types/jest": "^29.0",
