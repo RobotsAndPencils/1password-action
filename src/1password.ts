@@ -55,13 +55,13 @@ export class OnePassword {
         }
       )
 
-      core.info('Successfully signed in to 1Password')
+      core.info(`Successfully signed in to 1Password`)
       const session = output.toString().trim()
       core.setSecret(session)
 
       this.onePasswordEnv.OP_SESSION_github_action = session
     } catch (error) {
-      throw new Error(error)
+      throw error
     }
   }
   async listItemsInVault(vault: string): Promise<string> {
