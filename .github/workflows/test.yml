@@ -11,7 +11,7 @@ jobs:
   build: # make sure build/ci work properly
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - run: |
           npm install
       - run: |
@@ -23,12 +23,12 @@ jobs:
     runs-on: ${{ matrix.runs-on }}
     steps:
       - name: Checkout Locally
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         if: ${{ env.ACT }}
         with:
           path: "1password-action"
       - name: Checkout Github
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         if: ${{ !env.ACT }}
       - name: Test Action
         uses: ./
