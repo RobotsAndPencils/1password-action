@@ -29,7 +29,8 @@ test('parses single unquoted, renamed item', async () => {
 })
 
 test('parses multiple unquoted, renamed items', async () => {
-  const output = parseItemRequestsInput(`GitHub Action Test Vault > Test Login | Creds
+  const output =
+    parseItemRequestsInput(`GitHub Action Test Vault > Test Login | Creds
   GitHub Action Test Vault > Test Password`)
   expect(output).toHaveLength(2)
   expect(output[0].vault).toBe('GitHub Action Test Vault')
