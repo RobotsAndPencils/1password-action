@@ -1,3 +1,7 @@
+## 2.0.0
+
+- Updates to Node 16
+
 ## 1.1
 
 ### New
