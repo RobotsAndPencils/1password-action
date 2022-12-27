@@ -18,6 +18,7 @@ export async function install(onePasswordVersion: string): Promise<void> {
   }
   const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op/pkg/v${onePasswordVersion}/op_${platform}_amd64_v${onePasswordVersion}.${extension}`
   const archive = await tc.downloadTool(onePasswordUrl)
+  core.info(`Downloading ${onePasswordVersion} for ${platform} from ${onePasswordUrl}`)
 
   let extracted: string
   if (platform === 'darwin') {
