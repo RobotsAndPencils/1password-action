@@ -252,6 +252,7 @@ function install(onePasswordVersion) {
         }
         const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op/pkg/v${onePasswordVersion}/op_${platform}_amd64_v${onePasswordVersion}.${extension}`;
         const archive = yield tc.downloadTool(onePasswordUrl);
+        core.info(`Downloading ${onePasswordVersion} for ${platform} from ${onePasswordUrl}`);
         let extracted;
         if (platform === 'darwin') {
             const signatureCheck = yield exec_1.execWithOutput('pkgutil', [
@@ -406,7 +407,7 @@ function requestItems(onePassword, itemRequests) {
                 if (!uuid) {
                     throw new Error(`Could not find item in vault${ansi_styles_1.default.inverse.open} ${itemRequest.vault}${ansi_styles_1.default.inverse.close} with name${ansi_styles_1.default.inverse.open} ${itemRequest.name}`);
                 }
-                core.info(`Loading  ${ansi_styles_1.default.bold.open} ${itemRequest.name}`);
+                core.info(`Loading${ansi_styles_1.default.bold.open} ${itemRequest.name}`);
                 const itemJSON = yield onePassword.getItemInVault(itemRequest.vault, uuid);
                 const item = JSON.parse(itemJSON);
                 switch (item.templateUuid) {
