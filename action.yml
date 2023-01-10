@@ -21,7 +21,7 @@ inputs:
     required: true
     description: 'The vault and item names, and optionally new names, being requested.'
 runs:
-  using: 'node12'
+  using: 'node16'
   main: 'dist/index.js'
 branding:
   icon: "lock"

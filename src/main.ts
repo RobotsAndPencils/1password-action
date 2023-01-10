@@ -13,7 +13,13 @@ async function run(): Promise<void> {
   try {
     await onePassword.setupAndInstallIfNeeded()
   } catch (error) {
-    core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    } else {
+      core.setFailed(
+        `Run has failed setupAndInstallIfNeeded with ${JSON.stringify(error)}`
+      )
+    }
   }
 
   const signInAddress = core.getInput('sign-in-address')
@@ -36,7 +42,11 @@ async function run(): Promise<void> {
       masterPassword
     )
   } catch (error) {
-    core.setFailed(`Error signing in to 1Password: ${error.message}`)
+    if (error instanceof Error) {
+      core.setFailed(`Error signing in to 1Password: ${error.message}`)
+    } else {
+      core.setFailed(`Error signing in to 1Password:: ${JSON.stringify(error)}`)
+    }
     return
   }
   core.endGroup()
@@ -49,7 +59,13 @@ async function run(): Promise<void> {
   try {
     await requestItems(onePassword, itemRequests)
   } catch (error) {
-    core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    } else {
+      core.setFailed(
+        `Run has failed requestItems with ${JSON.stringify(error)}`
+      )
+    }
   }
 
   core.endGroup()
@@ -59,7 +75,11 @@ async function run(): Promise<void> {
   try {
     await onePassword.signOut()
   } catch (error) {
-    core.setFailed(error.message)
+    if (error instanceof Error) {
+      core.setFailed(error.message)
+    } else {
+      core.setFailed(`Run has failed signOut with ${JSON.stringify(error)}`)
+    }
   }
 }
 
@@ -147,7 +167,13 @@ async function requestItems(
         }
       }
     } catch (error) {
-      throw new Error(error)
+      if (error instanceof Error) {
+        throw error
+      } else {
+        throw new Error(
+          `request items has failed with ${JSON.stringify(error)}`
+        )
+      }
     }
   }
 }
