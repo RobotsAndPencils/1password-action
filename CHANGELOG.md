@@ -1,3 +1,7 @@
+## 2.0.1
+
+- Fix execution environment for ubuntu >= 20.x
+
 ## 2.0.0
 
 - Updates to Node 16

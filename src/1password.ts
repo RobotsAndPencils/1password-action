@@ -10,12 +10,8 @@ export class OnePassword {
 
   constructor(deviceId: string) {
     this.onePasswordEnv = {
+      ...process.env,
       OP_DEVICE: deviceId
-    }
-
-    if (process.env['XDG_CONFIG_HOME'] === undefined) {
-      // This env var isn't set on GitHub-hosted runners
-      this.onePasswordEnv.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`
     }
   }
 
