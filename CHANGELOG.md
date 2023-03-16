@@ -1,3 +1,7 @@
+## 2.0.2
+
+- Fix CI linting step
+
 ## 2.0.1
 
 - Fix execution environment for ubuntu >= 20.x
