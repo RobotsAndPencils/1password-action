@@ -1,10 +1,14 @@
+## 2.1.0
+
+- Support for multi word names. Resolves [#54](https://github.com/RobotsAndPencils/1password-action/issues/54)
+
 ## 2.0.2
 
-- Fix CI linting step
+- Fix CI linting step Resolves [#58](https://github.com/RobotsAndPencils/1password-action/issues/58)
 
 ## 2.0.1
 
-- Fix execution environment for ubuntu >= 20.x
+- Fix execution environment for ubuntu >= 20.x. Resolves [#58](https://github.com/RobotsAndPencils/1password-action/issues/58)
 
 ## 2.0.0
 

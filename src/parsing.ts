@@ -76,8 +76,8 @@ export function parseItemRequestsInput(itemInput: string): ItemRequest[] {
 
 function normalizeOutputName(dataKey: string): string {
   return dataKey
-    .replace(' ', '_')
-    .replace('.', '_')
+    .replace(/\s/g, '_')
+    .replace(/\./g, '_')
     .replace(/[^\p{L}\p{N}_-]/gu, '')
     .toLowerCase()
 }
