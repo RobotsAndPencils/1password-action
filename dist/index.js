@@ -47,13 +47,7 @@ const exec_1 = __nccwpck_require__(7757);
 const ONE_PASSWORD_VERSION = '1.8.0';
 class OnePassword {
     constructor(deviceId) {
-        this.onePasswordEnv = {
-            OP_DEVICE: deviceId
-        };
-        if (process.env['XDG_CONFIG_HOME'] === undefined) {
-            // This env var isn't set on GitHub-hosted runners
-            this.onePasswordEnv.XDG_CONFIG_HOME = `${process.env['HOME']}/.config`;
-        }
+        this.onePasswordEnv = Object.assign(Object.assign({}, process.env), { OP_DEVICE: deviceId });
     }
     setupAndInstallIfNeeded() {
         return __awaiter(this, void 0, void 0, function* () {
