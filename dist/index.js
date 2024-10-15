@@ -44,7 +44,7 @@ const core = __importStar(__nccwpck_require__(2186));
 const install_1 = __nccwpck_require__(9039);
 const tc = __importStar(__nccwpck_require__(7784));
 const exec_1 = __nccwpck_require__(7757);
-const ONE_PASSWORD_VERSION = '1.8.0';
+const ONE_PASSWORD_VERSION = '2.30.0';
 class OnePassword {
     constructor(deviceId) {
         this.onePasswordEnv = Object.assign(Object.assign({}, process.env), { OP_DEVICE: deviceId });
@@ -66,29 +66,30 @@ class OnePassword {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
             try {
-                const output = yield (0, exec_1.execWithOutput)('op', [
-                    'signin',
+                yield (0, exec_1.execWithOutput)('op', [
+                    'account add',
+                    '--address',
                     signInAddress,
+                    '--email',
                     emailAddress,
+                    '--secret-key',
                     secretKey,
                     '--raw',
                     '--shorthand',
-                    'github_action'
+                    'github_action',
+                    '--signin'
                 ], {
                     env,
                     input: Buffer.alloc(masterPassword.length, masterPassword)
                 });
                 core.info(`Successfully signed in to 1Password`);
-                const session = output.toString().trim();
-                core.setSecret(session);
-                this.onePasswordEnv.OP_SESSION_github_action = session;
             }
             catch (error) {
                 if (error instanceof Error) {
                     throw new Error(error.message);
                 }
                 else {
-                    throw new Error(`signIn has failed with ${JSON.stringify(error)}`);
+                    throw new Error(`account add has failed with ${JSON.stringify(error)}`);
                 }
             }
         });
@@ -96,7 +97,7 @@ class OnePassword {
     listItemsInVault(vault) {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            return yield (0, exec_1.execWithOutput)('op', ['list', 'items', '--vault', vault], {
+            return yield (0, exec_1.execWithOutput)('op', ['item list', '--vault', vault, '--format=json'], {
                 env
             });
         });
@@ -104,7 +105,7 @@ class OnePassword {
     getItemInVault(vault, uuid) {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            return yield (0, exec_1.execWithOutput)('op', ['get', 'item', uuid, '--vault', vault], {
+            return yield (0, exec_1.execWithOutput)('op', ['item get', uuid, '--vault', vault, '--format=json'], {
                 env
             });
         });
@@ -112,7 +113,7 @@ class OnePassword {
     getDocument(uuid, filename) {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            yield (0, exec_1.execWithOutput)('op', ['get', 'document', uuid, '--output', filename], {
+            yield (0, exec_1.execWithOutput)('op', ['document get', uuid, '--output', filename], {
                 env
             });
         });
@@ -120,7 +121,7 @@ class OnePassword {
     signOut() {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            yield (0, exec_1.execWithOutput)('op', ['signout', '--forget'], { env });
+            yield (0, exec_1.execWithOutput)('op', ['account forget'], { env });
         });
     }
 }
@@ -257,12 +258,14 @@ function install(onePasswordVersion) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = os_1.default.platform().toLowerCase();
         let extension = 'zip';
+        let platformSuffix = platform;
         if (platform === 'darwin') {
             extension = 'pkg';
+            platformSuffix = 'apple_universal';
         }
-        const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op/pkg/v${onePasswordVersion}/op_${platform}_amd64_v${onePasswordVersion}.${extension}`;
-        const archive = yield tc.downloadTool(onePasswordUrl);
+        const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op2/pkg/v${onePasswordVersion}/op_${platformSuffix}_v${onePasswordVersion}.${extension}`;
         core.info(`Downloading ${onePasswordVersion} for ${platform} from ${onePasswordUrl}`);
+        const archive = yield tc.downloadTool(onePasswordUrl);
         let extracted;
         if (platform === 'darwin') {
             const signatureCheck = yield (0, exec_1.execWithOutput)('pkgutil', [
@@ -364,6 +367,7 @@ function run() {
         // try {
         const deviceId = core.getInput('device-id');
         const onePassword = new _1password_1.OnePassword(deviceId);
+        core.startGroup('Setup and Install 1Password');
         try {
             yield onePassword.setupAndInstallIfNeeded();
         }
@@ -375,6 +379,8 @@ function run() {
                 core.setFailed(`Run has failed setupAndInstallIfNeeded with ${JSON.stringify(error)}`);
             }
         }
+        core.endGroup();
+        core.startGroup('Setting secrets');
         const signInAddress = core.getInput('sign-in-address');
         const emailAddress = core.getInput('email-address');
         const masterPassword = core.getInput('master-password');
@@ -384,6 +390,7 @@ function run() {
         core.setSecret(emailAddress);
         core.setSecret(masterPassword);
         core.setSecret(secretKey);
+        core.endGroup();
         core.startGroup('Signing in to 1Password');
         try {
             yield onePassword.signIn(signInAddress, emailAddress, secretKey, masterPassword);
@@ -568,8 +575,8 @@ function parseItemRequestsInput(itemInput) {
 exports.parseItemRequestsInput = parseItemRequestsInput;
 function normalizeOutputName(dataKey) {
     return dataKey
-        .replace(' ', '_')
-        .replace('.', '_')
+        .replace(/\s/g, '_')
+        .replace(/\./g, '_')
         .replace(/[^\p{L}\p{N}_-]/gu, '')
         .toLowerCase();
 }

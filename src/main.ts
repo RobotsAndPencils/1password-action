@@ -34,6 +34,7 @@ async function run(): Promise<void> {
   core.setSecret(secretKey)
 
   core.startGroup('Signing in to 1Password')
+
   try {
     await onePassword.signIn(
       signInAddress,
@@ -92,13 +93,12 @@ async function requestItems(
       core.info(
         `Getting items in 1Password Vault:${style.bold.open} ${itemRequest.vault}`
       )
-
       const itemsJSON = await onePassword.listItemsInVault(itemRequest.vault)
 
       const items: Item[] = JSON.parse(itemsJSON)
       const uuid = items
-        .filter(item => item.overview.title === itemRequest.name)
-        .map(item => item.uuid)[0]
+        .filter(item => item.title === itemRequest.name)
+        .map(item => item.id)[0]
 
       if (!uuid) {
         throw new Error(
@@ -106,18 +106,16 @@ async function requestItems(
         )
       }
 
-      core.info(`Loading${style.bold.open} ${itemRequest.name}`)
       const itemJSON = await onePassword.getItemInVault(itemRequest.vault, uuid)
       const item: Item = JSON.parse(itemJSON)
 
-      switch (item.templateUuid) {
-        // Item
-        case '001': {
-          const username = (item.details.fields ?? []).filter(
-            field => field.designation === 'username'
+      switch (item.category) {
+        case 'LOGIN': {
+          const username = (item.fields ?? []).filter(
+            field => field.purpose === 'USERNAME'
           )[0].value
-          const password = (item.details.fields ?? []).filter(
-            field => field.designation === 'password'
+          const password = (item.fields ?? []).filter(
+            field => field.purpose === 'PASSWORD'
           )[0].value
 
           const usernameOutputName = `${itemRequest.outputName}_username`
@@ -128,12 +126,14 @@ async function requestItems(
 
           break
         }
-        // Password
-        case '005': {
-          const password = item.details.password
+        case 'PASSWORD': {
+          const password = (item.fields ?? []).filter(
+            field => field.purpose === 'PASSWORD'
+          )[0].value
+
           if (password === undefined) {
             throw new Error(
-              `${style.inverse.open}Expected string for property item.details.password, got undefined.`
+              `${style.inverse.open}Expected string for field password, got undefined.`
             )
           }
 
@@ -143,12 +143,11 @@ async function requestItems(
 
           break
         }
-        // Document
-        case '006': {
-          const filename = item.details.documentAttributes?.fileName
+        case 'DOCUMENT': {
+          const filename = (item.files ?? [])[0].name
           if (filename === undefined) {
             throw new Error(
-              `${style.inverse.open}Expected string for property document.details.documentAttributes?.filename, got undefined.`
+              `${style.inverse.open}Expected string for file name, got undefined.`
             )
           }
 

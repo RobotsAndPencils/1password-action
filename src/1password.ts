@@ -3,7 +3,7 @@ import {install} from './install'
 import * as tc from '@actions/tool-cache'
 import {execWithOutput} from './exec'
 
-const ONE_PASSWORD_VERSION = '1.8.0'
+const ONE_PASSWORD_VERSION = '2.30.0'
 
 export class OnePassword {
   onePasswordEnv: {[key: string]: string}
@@ -37,13 +37,18 @@ export class OnePassword {
       const output = await execWithOutput(
         'op',
         [
-          'signin',
+          'account',
+          'add',
+          '--address',
           signInAddress,
+          '--email',
           emailAddress,
+          '--secret-key',
           secretKey,
           '--raw',
           '--shorthand',
-          'github_action'
+          'github_action',
+          '--signin'
         ],
         {
           env,
@@ -67,23 +72,31 @@ export class OnePassword {
   async listItemsInVault(vault: string): Promise<string> {
     const env = this.onePasswordEnv
 
-    return await execWithOutput('op', ['list', 'items', '--vault', vault], {
-      env
-    })
+    return await execWithOutput(
+      'op',
+      ['item', 'list', '--vault', vault, '--format=json'],
+      {
+        env
+      }
+    )
   }
 
   async getItemInVault(vault: string, uuid: string): Promise<string> {
     const env = this.onePasswordEnv
-    return await execWithOutput('op', ['get', 'item', uuid, '--vault', vault], {
-      env
-    })
+    return await execWithOutput(
+      'op',
+      ['item', 'get', uuid, '--vault', vault, '--format=json'],
+      {
+        env
+      }
+    )
   }
 
   async getDocument(uuid: string, filename: string): Promise<void> {
     const env = this.onePasswordEnv
     await execWithOutput(
       'op',
-      ['get', 'document', uuid, '--output', filename],
+      ['document', 'get', uuid, '--output', filename],
       {
         env
       }
@@ -92,6 +105,6 @@ export class OnePassword {
 
   async signOut(): Promise<void> {
     const env = this.onePasswordEnv
-    await execWithOutput('op', ['signout', '--forget'], {env})
+    await execWithOutput('op', ['signout', '--account', 'github_action', '--forget'], {env})
   }
 }

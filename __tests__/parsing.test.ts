@@ -42,7 +42,9 @@ test('parses multiple unquoted, renamed items', async () => {
 })
 
 test('parses single unquoted multi word item', async () => {
-  const output = parseItemRequestsInput('GitHub Action Test Vault > Test Login Four Words')
+  const output = parseItemRequestsInput(
+    'GitHub Action Test Vault > Test Login Four Words'
+  )
   expect(output).toHaveLength(1)
   expect(output[0].vault).toBe('GitHub Action Test Vault')
   expect(output[0].name).toBe('Test Login Four Words')
@@ -50,7 +52,9 @@ test('parses single unquoted multi word item', async () => {
 })
 
 test('parses single unquoted multi word item separated by periods', async () => {
-  const output = parseItemRequestsInput('GitHub Action Test Vault > Test.Login.Four.Words')
+  const output = parseItemRequestsInput(
+    'GitHub Action Test Vault > Test.Login.Four.Words'
+  )
   expect(output).toHaveLength(1)
   expect(output[0].vault).toBe('GitHub Action Test Vault')
   expect(output[0].name).toBe('Test.Login.Four.Words')

@@ -1,3 +1,7 @@
+## 3.0.0
+
+- Migrated from 1Password CLI version 1.8.0 to 2.30.0
+
 ## 2.1.0
 
 - Support for multi word names. Resolves [#54](https://github.com/RobotsAndPencils/1password-action/issues/54)
