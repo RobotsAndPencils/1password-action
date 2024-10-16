@@ -40,7 +40,7 @@ jobs:
           secret-key: ${{ secrets.OP_SECRET_KEY }}
           master-password: ${{ secrets.OP_MASTER_PASSWORD }}
           items: |
-            1Password Action Tests > Test Login
+            1Password Action Tests (with/without extra characters) > Test Login
             1Password Action Tests > Test Password | p12
             1Password Action Tests > Test Document
       - name: Verify
