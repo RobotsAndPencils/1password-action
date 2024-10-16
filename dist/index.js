@@ -261,9 +261,9 @@ const KEY_FINGERPRINT = '3FEF9748469ADBE15DA7CA80AC2D62742012EA22';
 function install(onePasswordVersion) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = os_1.default.platform().toLowerCase();
-        let arch = 'amd64';
-        if (platform === 'darwin') {
-            arch = 'arm64';
+        let arch = os_1.default.arch(); // This will return 'x64' for Intel and 'arm64' for Apple Silicon
+        if (arch === 'x64') {
+            arch = 'amd64';
         }
         const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op2/pkg/v${onePasswordVersion}/op_${platform}_${arch}_v${onePasswordVersion}.zip`;
         core.info(`Downloading ${onePasswordVersion} for ${platform} from ${onePasswordUrl}`);

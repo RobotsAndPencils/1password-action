@@ -1,6 +1,6 @@
-## 3.0.2
+## 3.1.0
 
-- Adds ability to turn on debug logging for 1Password CLI commands
+- Adds back support for intel based mac
 
 ## 3.0.0
 

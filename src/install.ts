@@ -9,10 +9,10 @@ const KEY_FINGERPRINT = '3FEF9748469ADBE15DA7CA80AC2D62742012EA22'
 
 export async function install(onePasswordVersion: string): Promise<void> {
   const platform = os.platform().toLowerCase()
+  let arch = os.arch() // This will return 'x64' for Intel and 'arm64' for Apple Silicon
 
-  let arch = 'amd64'
-  if (platform === 'darwin') {
-    arch = 'arm64'
+  if (arch === 'x64') {
+    arch = 'amd64'
   }
   const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op2/pkg/v${onePasswordVersion}/op_${platform}_${arch}_v${onePasswordVersion}.zip`
   core.info(
