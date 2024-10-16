@@ -187,6 +187,9 @@ function execWithOutput(command, args, options) {
             },
             stderr: (data) => {
                 err += data.toString().trim();
+            },
+            debug: (data) => {
+                core.debug(data);
             }
         };
         try {

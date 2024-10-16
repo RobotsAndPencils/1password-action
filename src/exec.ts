@@ -17,6 +17,9 @@ export async function execWithOutput(
     },
     stderr: (data: Buffer) => {
       err += data.toString().trim()
+    },
+    debug: (data: string) => {
+      core.debug(data)
     }
   }
   try {
