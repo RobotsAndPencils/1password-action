@@ -1,8 +1,8 @@
 {
-  "name": "typescript-action",
-  "version": "0.0.0",
+  "name": "1password-action",
+  "version": "2.1.0",
   "private": true,
-  "description": "TypeScript template action",
+  "description": "Import items from 1Password securely",
   "main": "lib/main.js",
   "scripts": {
     "act": "act -P ubuntu-latest=nektos/act-environments-ubuntu:18.04 -j test --secret-file .secrets --env-file .environment",
@@ -16,14 +16,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/actions/typescript-action.git"
+    "url": "git+https://github.com/RobotsAndPencils/1password-action"
   },
   "keywords": [
     "actions",
     "node",
     "setup"
   ],
-  "author": "",
+  "author": "Robots & Pencils",
   "license": "MIT",
   "dependencies": {
     "@actions/core": "^1.2.6",
