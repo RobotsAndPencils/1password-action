@@ -139,7 +139,7 @@ async function requestItems(
             )
           }
 
-          const passwordOutputName = `${itemRequest.outputName}`
+          const passwordOutputName = `${itemRequest.outputName}_password`
           core.debug(`Setting password variable ${passwordOutputName}`)
           core.setSecret(password)
           core.setOutput(passwordOutputName, password)

@@ -448,7 +448,7 @@ function requestItems(onePassword, itemRequests) {
                         if (password === undefined) {
                             throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for field password, got undefined.`);
                         }
-                        const passwordOutputName = `${itemRequest.outputName}`;
+                        const passwordOutputName = `${itemRequest.outputName}_password`;
                         core.debug(`Setting password variable ${passwordOutputName}`);
                         core.setSecret(password);
                         core.setOutput(passwordOutputName, password);
