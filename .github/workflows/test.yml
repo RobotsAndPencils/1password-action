@@ -16,7 +16,7 @@ jobs:
           npm install
       - run: |
           npm run all
-  test: # make sure the action works
+  test: # make sure the action works without having to build
     strategy:
       matrix:
         runs-on: [macos-latest, ubuntu-20.04, ubuntu-22.04, ubuntu-latest]
@@ -30,10 +30,6 @@ jobs:
       - name: Checkout Github
         uses: actions/checkout@v3
         if: ${{ !env.ACT }}
-      - name: Install dependencies
-        run: npm install
-      - name: Build Typescript
-        run: npm run all
       - name: Test Action
         uses: ./
         id: secrets
