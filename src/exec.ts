@@ -8,9 +8,8 @@ export async function execWithOutput(
   let out = ''
   let err = ''
 
-  const isDebug = process.env.ACTIONS_STEP_DEBUG === 'true'
   const opt = options ?? {}
-  opt.silent = !isDebug
+  opt.silent = false
   opt.listeners = {
     stdout: (data: Buffer) => {
       out += data.toString()
