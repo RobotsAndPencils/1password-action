@@ -8,8 +8,9 @@ export async function execWithOutput(
   let out = ''
   let err = ''
 
+  const isDebug = process.env.ACTIONS_STEP_DEBUG === 'true'
   const opt = options ?? {}
-  opt.silent = true // for debugging set this to false to see the output of 1password
+  opt.silent = !isDebug
   opt.listeners = {
     stdout: (data: Buffer) => {
       out += data.toString()

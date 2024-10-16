@@ -178,8 +178,9 @@ function execWithOutput(command, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let out = '';
         let err = '';
+        const isDebug = process.env.ACTIONS_STEP_DEBUG === 'true';
         const opt = options !== null && options !== void 0 ? options : {};
-        opt.silent = true; // for debugging set this to false to see the output of 1password
+        opt.silent = !isDebug;
         opt.listeners = {
             stdout: (data) => {
                 out += data.toString();
