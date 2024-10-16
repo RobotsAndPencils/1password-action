@@ -119,8 +119,10 @@ async function requestItems(
           )[0].value
 
           const usernameOutputName = `${itemRequest.outputName}_username`
+          core.debug(`Setting username variable ${usernameOutputName}`)
           core.setOutput(usernameOutputName, username)
           const passwordOutputName = `${itemRequest.outputName}_password`
+          core.debug(`Setting password variable ${passwordOutputName}`)
           core.setSecret(password)
           core.setOutput(passwordOutputName, password)
 
@@ -138,6 +140,7 @@ async function requestItems(
           }
 
           const passwordOutputName = `${itemRequest.outputName}_password`
+          core.debug(`Setting password variable ${passwordOutputName}`)
           core.setSecret(password)
           core.setOutput(passwordOutputName, password)
 
@@ -160,6 +163,7 @@ async function requestItems(
           }
 
           const documentOutputName = `${itemRequest.outputName}_filename`
+          core.debug(`Setting document variable ${documentOutputName}`)
           core.setOutput(documentOutputName, filename)
 
           break

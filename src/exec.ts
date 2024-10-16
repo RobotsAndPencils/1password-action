@@ -17,13 +17,10 @@ export async function execWithOutput(
     },
     stderr: (data: Buffer) => {
       err += data.toString().trim()
-    },
-    debug: (data: string) => {
-      core.debug(data)
     }
   }
   try {
-    core.info(`Executing command: ${command} ${args ? args.join(' ') : ''}`)
+    core.debug(`Executing command: ${command} ${args ? args.join(' ') : ''}`)
     await exec.exec(command, args, opt)
   } catch {
     if (err) {

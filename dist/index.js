@@ -187,13 +187,10 @@ function execWithOutput(command, args, options) {
             },
             stderr: (data) => {
                 err += data.toString().trim();
-            },
-            debug: (data) => {
-                core.debug(data);
             }
         };
         try {
-            core.info(`Executing command: ${command} ${args ? args.join(' ') : ''}`);
+            core.debug(`Executing command: ${command} ${args ? args.join(' ') : ''}`);
             yield exec.exec(command, args, opt);
         }
         catch (_a) {
@@ -438,8 +435,10 @@ function requestItems(onePassword, itemRequests) {
                         const username = ((_a = item.fields) !== null && _a !== void 0 ? _a : []).filter(field => field.purpose === 'USERNAME')[0].value;
                         const password = ((_b = item.fields) !== null && _b !== void 0 ? _b : []).filter(field => field.purpose === 'PASSWORD')[0].value;
                         const usernameOutputName = `${itemRequest.outputName}_username`;
+                        core.debug(`Setting username variable ${usernameOutputName}`);
                         core.setOutput(usernameOutputName, username);
                         const passwordOutputName = `${itemRequest.outputName}_password`;
+                        core.debug(`Setting password variable ${passwordOutputName}`);
                         core.setSecret(password);
                         core.setOutput(passwordOutputName, password);
                         break;
@@ -450,6 +449,7 @@ function requestItems(onePassword, itemRequests) {
                             throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for field password, got undefined.`);
                         }
                         const passwordOutputName = `${itemRequest.outputName}_password`;
+                        core.debug(`Setting password variable ${passwordOutputName}`);
                         core.setSecret(password);
                         core.setOutput(passwordOutputName, password);
                         break;
@@ -466,6 +466,7 @@ function requestItems(onePassword, itemRequests) {
                             throw new Error(`${ansi_styles_1.default.inverse.open}Error downloading file ${filename} - ${error}`);
                         }
                         const documentOutputName = `${itemRequest.outputName}_filename`;
+                        core.debug(`Setting document variable ${documentOutputName}`);
                         core.setOutput(documentOutputName, filename);
                         break;
                     }
