@@ -66,8 +66,9 @@ class OnePassword {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
             try {
-                yield (0, exec_1.execWithOutput)('op', [
-                    'account add',
+                const output = yield (0, exec_1.execWithOutput)('op', [
+                    'account',
+                    'add',
                     '--address',
                     signInAddress,
                     '--email',
@@ -83,13 +84,16 @@ class OnePassword {
                     input: Buffer.alloc(masterPassword.length, masterPassword)
                 });
                 core.info(`Successfully signed in to 1Password`);
+                const session = output.toString().trim();
+                core.setSecret(session);
+                this.onePasswordEnv.OP_SESSION_github_action = session;
             }
             catch (error) {
                 if (error instanceof Error) {
                     throw new Error(error.message);
                 }
                 else {
-                    throw new Error(`account add has failed with ${JSON.stringify(error)}`);
+                    throw new Error(`signIn has failed with ${JSON.stringify(error)}`);
                 }
             }
         });
@@ -97,7 +101,7 @@ class OnePassword {
     listItemsInVault(vault) {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            return yield (0, exec_1.execWithOutput)('op', ['item list', '--vault', vault, '--format=json'], {
+            return yield (0, exec_1.execWithOutput)('op', ['item', 'list', '--vault', vault, '--format=json'], {
                 env
             });
         });
@@ -105,7 +109,7 @@ class OnePassword {
     getItemInVault(vault, uuid) {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            return yield (0, exec_1.execWithOutput)('op', ['item get', uuid, '--vault', vault, '--format=json'], {
+            return yield (0, exec_1.execWithOutput)('op', ['item', 'get', uuid, '--vault', vault, '--format=json'], {
                 env
             });
         });
@@ -113,7 +117,7 @@ class OnePassword {
     getDocument(uuid, filename) {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            yield (0, exec_1.execWithOutput)('op', ['document get', uuid, '--output', filename], {
+            yield (0, exec_1.execWithOutput)('op', ['document', 'get', uuid, '--output', filename], {
                 env
             });
         });
@@ -121,7 +125,7 @@ class OnePassword {
     signOut() {
         return __awaiter(this, void 0, void 0, function* () {
             const env = this.onePasswordEnv;
-            yield (0, exec_1.execWithOutput)('op', ['account forget'], { env });
+            yield (0, exec_1.execWithOutput)('op', ['signout', '--account', 'github_action', '--forget'], { env });
         });
     }
 }
@@ -251,41 +255,19 @@ const io_1 = __nccwpck_require__(7436);
 const io_util_1 = __nccwpck_require__(1962);
 const tc = __importStar(__nccwpck_require__(7784));
 const exec = __importStar(__nccwpck_require__(1514));
-const exec_1 = __nccwpck_require__(7757);
-const CERT_IDENTIFIER = 'Developer ID Installer: AgileBits Inc. (2BUA8C4S2C)';
 const KEY_FINGERPRINT = '3FEF9748469ADBE15DA7CA80AC2D62742012EA22';
 function install(onePasswordVersion) {
     return __awaiter(this, void 0, void 0, function* () {
         const platform = os_1.default.platform().toLowerCase();
-        let extension = 'zip';
-        let platformSuffix = platform;
+        let arch = 'amd64';
         if (platform === 'darwin') {
-            extension = 'pkg';
-            platformSuffix = 'apple_universal';
+            arch = 'arm64';
         }
-        const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op2/pkg/v${onePasswordVersion}/op_${platformSuffix}_v${onePasswordVersion}.${extension}`;
+        const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op2/pkg/v${onePasswordVersion}/op_${platform}_${arch}_v${onePasswordVersion}.zip`;
         core.info(`Downloading ${onePasswordVersion} for ${platform} from ${onePasswordUrl}`);
         const archive = yield tc.downloadTool(onePasswordUrl);
-        let extracted;
-        if (platform === 'darwin') {
-            const signatureCheck = yield (0, exec_1.execWithOutput)('pkgutil', [
-                '--check-signature',
-                archive
-            ]);
-            if (signatureCheck.includes(CERT_IDENTIFIER) === false) {
-                throw new Error(`Signature verification of the installer package downloaded from ${onePasswordUrl} failed.\nExpecting it to include ${CERT_IDENTIFIER}.\nReceived:\n${signatureCheck}`);
-            }
-            else {
-                core.info('Verified the code signature of the installer package.');
-            }
-            // Expanding the package manually to avoid needing an admin password for installation and to be able to put it into the tool cache.
-            const destination = 'op.unpkg';
-            yield exec.exec('pkgutil', ['--expand', archive, destination]);
-            yield exec.exec(`/bin/bash -c "cat ${destination}/Payload | gzip -d | cpio -id"`);
-            extracted = '.';
-        }
-        else {
-            extracted = yield tc.extractZip(archive);
+        const extracted = yield tc.extractZip(archive);
+        if (platform !== 'darwin') {
             yield exec.exec('gpg', [
                 '--keyserver',
                 'keyserver.ubuntu.com',
@@ -367,7 +349,6 @@ function run() {
         // try {
         const deviceId = core.getInput('device-id');
         const onePassword = new _1password_1.OnePassword(deviceId);
-        core.startGroup('Setup and Install 1Password');
         try {
             yield onePassword.setupAndInstallIfNeeded();
         }
@@ -379,8 +360,6 @@ function run() {
                 core.setFailed(`Run has failed setupAndInstallIfNeeded with ${JSON.stringify(error)}`);
             }
         }
-        core.endGroup();
-        core.startGroup('Setting secrets');
         const signInAddress = core.getInput('sign-in-address');
         const emailAddress = core.getInput('email-address');
         const masterPassword = core.getInput('master-password');
@@ -390,7 +369,6 @@ function run() {
         core.setSecret(emailAddress);
         core.setSecret(masterPassword);
         core.setSecret(secretKey);
-        core.endGroup();
         core.startGroup('Signing in to 1Password');
         try {
             yield onePassword.signIn(signInAddress, emailAddress, secretKey, masterPassword);
@@ -435,7 +413,7 @@ function run() {
     });
 }
 function requestItems(onePassword, itemRequests) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d;
     return __awaiter(this, void 0, void 0, function* () {
         for (const itemRequest of itemRequests) {
             try {
@@ -443,19 +421,17 @@ function requestItems(onePassword, itemRequests) {
                 const itemsJSON = yield onePassword.listItemsInVault(itemRequest.vault);
                 const items = JSON.parse(itemsJSON);
                 const uuid = items
-                    .filter(item => item.overview.title === itemRequest.name)
-                    .map(item => item.uuid)[0];
+                    .filter(item => item.title === itemRequest.name)
+                    .map(item => item.id)[0];
                 if (!uuid) {
                     throw new Error(`Could not find item in vault${ansi_styles_1.default.inverse.open} ${itemRequest.vault}${ansi_styles_1.default.inverse.close} with name${ansi_styles_1.default.inverse.open} ${itemRequest.name}`);
                 }
-                core.info(`Loading${ansi_styles_1.default.bold.open} ${itemRequest.name}`);
                 const itemJSON = yield onePassword.getItemInVault(itemRequest.vault, uuid);
                 const item = JSON.parse(itemJSON);
-                switch (item.templateUuid) {
-                    // Item
-                    case '001': {
-                        const username = ((_a = item.details.fields) !== null && _a !== void 0 ? _a : []).filter(field => field.designation === 'username')[0].value;
-                        const password = ((_b = item.details.fields) !== null && _b !== void 0 ? _b : []).filter(field => field.designation === 'password')[0].value;
+                switch (item.category) {
+                    case 'LOGIN': {
+                        const username = ((_a = item.fields) !== null && _a !== void 0 ? _a : []).filter(field => field.purpose === 'USERNAME')[0].value;
+                        const password = ((_b = item.fields) !== null && _b !== void 0 ? _b : []).filter(field => field.purpose === 'PASSWORD')[0].value;
                         const usernameOutputName = `${itemRequest.outputName}_username`;
                         core.setOutput(usernameOutputName, username);
                         const passwordOutputName = `${itemRequest.outputName}_password`;
@@ -463,22 +439,20 @@ function requestItems(onePassword, itemRequests) {
                         core.setOutput(passwordOutputName, password);
                         break;
                     }
-                    // Password
-                    case '005': {
-                        const password = item.details.password;
+                    case 'PASSWORD': {
+                        const password = ((_c = item.fields) !== null && _c !== void 0 ? _c : []).filter(field => field.purpose === 'PASSWORD')[0].value;
                         if (password === undefined) {
-                            throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for property item.details.password, got undefined.`);
+                            throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for field password, got undefined.`);
                         }
                         const passwordOutputName = `${itemRequest.outputName}_password`;
                         core.setSecret(password);
                         core.setOutput(passwordOutputName, password);
                         break;
                     }
-                    // Document
-                    case '006': {
-                        const filename = (_c = item.details.documentAttributes) === null || _c === void 0 ? void 0 : _c.fileName;
+                    case 'DOCUMENT': {
+                        const filename = ((_d = item.files) !== null && _d !== void 0 ? _d : [])[0].name;
                         if (filename === undefined) {
-                            throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for property document.details.documentAttributes?.filename, got undefined.`);
+                            throw new Error(`${ansi_styles_1.default.inverse.open}Expected string for file name, got undefined.`);
                         }
                         try {
                             yield onePassword.getDocument(uuid, filename);
