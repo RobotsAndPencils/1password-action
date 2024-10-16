@@ -4,48 +4,24 @@ import {mv} from '@actions/io'
 import {chmod} from '@actions/io/lib/io-util'
 import * as tc from '@actions/tool-cache'
 import * as exec from '@actions/exec'
-import {execWithOutput} from './exec'
 
-const CERT_IDENTIFIER = 'Developer ID Installer: AgileBits Inc. (2BUA8C4S2C)'
 const KEY_FINGERPRINT = '3FEF9748469ADBE15DA7CA80AC2D62742012EA22'
 
 export async function install(onePasswordVersion: string): Promise<void> {
   const platform = os.platform().toLowerCase()
 
-  let extension = 'zip'
+  let arch = 'amd64'
   if (platform === 'darwin') {
-    extension = 'pkg'
+    arch = 'arm64'
   }
-  const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op/pkg/v${onePasswordVersion}/op_${platform}_amd64_v${onePasswordVersion}.${extension}`
-  const archive = await tc.downloadTool(onePasswordUrl)
+  const onePasswordUrl = `https://cache.agilebits.com/dist/1P/op2/pkg/v${onePasswordVersion}/op_${platform}_${arch}_v${onePasswordVersion}.zip`
   core.info(
     `Downloading ${onePasswordVersion} for ${platform} from ${onePasswordUrl}`
   )
+  const archive = await tc.downloadTool(onePasswordUrl)
+  const extracted = await tc.extractZip(archive)
 
-  let extracted: string
-  if (platform === 'darwin') {
-    const signatureCheck = await execWithOutput('pkgutil', [
-      '--check-signature',
-      archive
-    ])
-    if (signatureCheck.includes(CERT_IDENTIFIER) === false) {
-      throw new Error(
-        `Signature verification of the installer package downloaded from ${onePasswordUrl} failed.\nExpecting it to include ${CERT_IDENTIFIER}.\nReceived:\n${signatureCheck}`
-      )
-    } else {
-      core.info('Verified the code signature of the installer package.')
-    }
-
-    // Expanding the package manually to avoid needing an admin password for installation and to be able to put it into the tool cache.
-    const destination = 'op.unpkg'
-    await exec.exec('pkgutil', ['--expand', archive, destination])
-    await exec.exec(
-      `/bin/bash -c "cat ${destination}/Payload | gzip -d | cpio -id"`
-    )
-    extracted = '.'
-  } else {
-    extracted = await tc.extractZip(archive)
-
+  if (platform !== 'darwin') {
     await exec.exec('gpg', [
       '--keyserver',
       'keyserver.ubuntu.com',

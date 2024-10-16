@@ -1,26 +1,20 @@
 export type Item = {
-  uuid: string
-  templateUuid: string
-  overview: Overview
-  details: Details
-}
-
-export type Overview = {
+  id: string
   title: string
-}
-
-export type Details = {
+  category: string
   fields?: Field[]
-  password?: string
-  documentAttributes?: DocumentAttributes
-}
-
-export type DocumentAttributes = {
-  fileName: string
+  files?: File[]
 }
 
 export type Field = {
-  designation: string
-  name: string
+  id: string
+  type: string
+  purpose: string
+  label: string
   value: string
+}
+
+export type File = {
+  id: string
+  name: string
 }
