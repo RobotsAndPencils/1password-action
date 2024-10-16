@@ -105,6 +105,10 @@ export class OnePassword {
 
   async signOut(): Promise<void> {
     const env = this.onePasswordEnv
-    await execWithOutput('op', ['signout', '--account', 'github_action', '--forget'], {env})
+    await execWithOutput(
+      'op',
+      ['signout', '--account', 'github_action', '--forget'],
+      {env}
+    )
   }
 }
