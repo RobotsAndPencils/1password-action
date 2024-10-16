@@ -1,3 +1,7 @@
+## 3.0.2
+
+- Adds ability to turn on debug logging for 1Password CLI commands
+
 ## 3.0.0
 
 - Migrated from 1Password CLI version 1.8.0 to 2.30.0
