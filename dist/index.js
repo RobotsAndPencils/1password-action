@@ -174,12 +174,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.execWithOutput = void 0;
 const exec = __importStar(__nccwpck_require__(1514));
+const core = __importStar(__nccwpck_require__(2186));
 function execWithOutput(command, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let out = '';
         let err = '';
         const opt = options !== null && options !== void 0 ? options : {};
-        opt.silent = false;
+        opt.silent = true;
         opt.listeners = {
             stdout: (data) => {
                 out += data.toString();
@@ -189,6 +190,7 @@ function execWithOutput(command, args, options) {
             }
         };
         try {
+            core.info(`Executing command: ${command} ${args ? args.join(' ') : ''}`);
             yield exec.exec(command, args, opt);
         }
         catch (_a) {

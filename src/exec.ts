@@ -1,4 +1,5 @@
 import * as exec from '@actions/exec'
+import * as core from '@actions/core'
 
 export async function execWithOutput(
   command: string,
@@ -9,7 +10,7 @@ export async function execWithOutput(
   let err = ''
 
   const opt = options ?? {}
-  opt.silent = false
+  opt.silent = true
   opt.listeners = {
     stdout: (data: Buffer) => {
       out += data.toString()
@@ -19,6 +20,7 @@ export async function execWithOutput(
     }
   }
   try {
+    core.info(`Executing command: ${command} ${args ? args.join(' ') : ''}`)
     await exec.exec(command, args, opt)
   } catch {
     if (err) {
