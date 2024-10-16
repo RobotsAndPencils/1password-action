@@ -178,9 +178,8 @@ function execWithOutput(command, args, options) {
     return __awaiter(this, void 0, void 0, function* () {
         let out = '';
         let err = '';
-        const isDebug = process.env.ACTIONS_STEP_DEBUG === 'true';
         const opt = options !== null && options !== void 0 ? options : {};
-        opt.silent = !isDebug;
+        opt.silent = false;
         opt.listeners = {
             stdout: (data) => {
                 out += data.toString();
