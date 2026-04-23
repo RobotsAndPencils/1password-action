@@ -26,7 +26,7 @@
   "author": "Robots & Pencils",
   "license": "MIT",
   "dependencies": {
-    "@actions/core": "^1.2.6",
+    "@actions/core": "^1.11.1",
     "@actions/tool-cache": "^2.0",
     "ansi-styles": "^6.0.0"
   },
